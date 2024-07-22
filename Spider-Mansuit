@@ -35,12 +35,21 @@ local function addServerSideScript()
             local character = player.Character
             if not character then return end
 
+            -- Remove the current player's outfit
+            for _, item in ipairs(character:GetChildren()) do
+                if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("Hat") or item:IsA("Accessory") then
+                    item:Destroy()
+                end
+            end
+
+            -- Load the target user's avatar
             local targetPlayer = Players:GetPlayerByUserId(targetUserId)
             if not targetPlayer or not targetPlayer.Character then return end
 
             local targetCharacter = targetPlayer.Character
             local outfit = targetCharacter:GetChildren()
 
+            -- Apply the target player's outfit to the current player
             for _, item in ipairs(outfit) do
                 if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("Hat") or item:IsA("Accessory") then
                     local newItem = item:Clone()
@@ -90,8 +99,38 @@ local function createClientGui()
     Button.Text = "Copy Outfit"
     Button.Parent = ScreenGui
 
+    local ImageLabel = Instance.new("ImageLabel")
+    ImageLabel.Size = UDim2.new(0.2, 0, 0.3, 0)
+    ImageLabel.Position = UDim2.new(0.4, 0, 0.1, 0)
+    ImageLabel.BackgroundTransparency = 1
+    ImageLabel.Parent = ScreenGui
+
     local remoteEvent = ReplicatedStorage:WaitForChild("AvatarCopyEvent")
 
+    -- Function to update avatar image preview
+    local function updateAvatarImage(username)
+        local success, userId = pcall(function()
+            return Players:GetUserIdFromNameAsync(username)
+        end)
+
+        if success then
+            local user = game:GetService("Players"):GetPlayerByUserId(userId)
+            if user then
+                ImageLabel.Image = "https://www.roblox.com/bust-thumbnail/image?userId=" .. userId .. "&width=420&height=420&format=png"
+            else
+                ImageLabel.Image = ""
+            end
+        else
+            ImageLabel.Image = ""
+        end
+    end
+
+    -- Update avatar image when text changes
+    TextBox:GetPropertyChangedSignal("Text"):Connect(function()
+        updateAvatarImage(TextBox.Text)
+    end)
+
+    -- Connect button click to send request to the server
     Button.MouseButton1Click:Connect(function()
         local username = TextBox.Text
         if username and username ~= "" then
