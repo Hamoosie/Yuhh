@@ -1,6 +1,11 @@
+-- Services
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
+
 -- Create ServerScriptService if it does not exist
 local function createServerScriptService()
-    local serverScriptService = game:GetService("ServerScriptService")
+    local serverScriptService = ServerScriptService
     if not serverScriptService then
         serverScriptService = Instance.new("ServerScriptService")
         serverScriptService.Name = "ServerScriptService"
@@ -23,23 +28,19 @@ local function addServerSideScript()
     local serverScript = Instance.new("Script")
     serverScript.Name = "AvatarCopyScript"
     serverScript.Source = [[
-        -- Services
         local Players = game:GetService("Players")
         local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-        -- Function to apply the outfit of the target user
         local function applyOutfit(player, targetUserId)
             local character = player.Character
             if not character then return end
 
-            -- Load the target user's avatar
             local targetPlayer = Players:GetPlayerByUserId(targetUserId)
             if not targetPlayer or not targetPlayer.Character then return end
 
             local targetCharacter = targetPlayer.Character
             local outfit = targetCharacter:GetChildren()
 
-            -- Apply the target player's outfit to the current player
             for _, item in ipairs(outfit) do
                 if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("Hat") or item:IsA("Accessory") then
                     local newItem = item:Clone()
@@ -48,12 +49,10 @@ local function addServerSideScript()
             end
         end
 
-        -- Setup RemoteEvents for communication
         local RemoteEvent = Instance.new("RemoteEvent")
         RemoteEvent.Name = "AvatarCopyEvent"
         RemoteEvent.Parent = ReplicatedStorage
 
-        -- Connect RemoteEvent to handle requests
         RemoteEvent.OnServerEvent:Connect(function(player, targetUsername)
             local success, targetUserId = pcall(function()
                 return Players:GetUserIdFromNameAsync(targetUsername)
@@ -69,5 +68,38 @@ local function addServerSideScript()
     serverScript.Parent = serverScriptService
 end
 
--- Execute the function to add the server-side script
+-- Function to create and show the client-side GUI
+local function createClientGui()
+    local player = Players.LocalPlayer
+    local playerGui = player:WaitForChild("PlayerGui")
+
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "AvatarCopyMenu"
+    ScreenGui.Parent = playerGui
+
+    local TextBox = Instance.new("TextBox")
+    TextBox.Size = UDim2.new(0.3, 0, 0.1, 0)
+    TextBox.Position = UDim2.new(0.35, 0, 0.4, 0)
+    TextBox.PlaceholderText = "Enter Username"
+    TextBox.Text = ""
+    TextBox.Parent = ScreenGui
+
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(0.1, 0, 0.1, 0)
+    Button.Position = UDim2.new(0.45, 0, 0.55, 0)
+    Button.Text = "Copy Outfit"
+    Button.Parent = ScreenGui
+
+    local remoteEvent = ReplicatedStorage:WaitForChild("AvatarCopyEvent")
+
+    Button.MouseButton1Click:Connect(function()
+        local username = TextBox.Text
+        if username and username ~= "" then
+            remoteEvent:FireServer(username)
+        end
+    end)
+end
+
+-- Execute functions
 addServerSideScript()
+createClientGui()
