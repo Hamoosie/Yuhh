@@ -4,7 +4,7 @@ local InsertService = game:GetService("InsertService")
 
 -- Configuration
 local TOOL_NAME = "SpiderManSuit"
-local SUIT_ID = 1234567890 -- Replace this with the Asset ID of the Spider-Man suit you want to use
+local SUIT_ID = 1818 -- Replace this with the correct Asset ID for the Spider-Man suit
 
 -- Function to create the Spider-Man suit tool
 local function createSpiderManSuitTool()
@@ -38,10 +38,9 @@ local function createSpiderManSuitTool()
         -- Services
         local Players = game:GetService("Players")
         local InsertService = game:GetService("InsertService")
-        local Debris = game:GetService("Debris")
 
         -- Configuration
-        local SUIT_ID = 1234567890 -- Replace this with the Asset ID of the Spider-Man suit you want to use
+        local SUIT_ID = 1818 -- Replace this with the correct Asset ID for the Spider-Man suit
 
         -- Tool
         local tool = script.Parent
@@ -50,8 +49,9 @@ local function createSpiderManSuitTool()
 
         -- Function to equip the Spider-Man suit
         local function equipSuit()
-            -- Load the Spider-Man suit from InsertService
-            local suit = InsertService:LoadAsset(SUIT_ID)
+            -- Load the Spider-Man suit
+            local suitAsset = InsertService:LoadAsset(SUIT_ID)
+            local suit = suitAsset:FindFirstChildOfClass("Model")
 
             -- Check if the suit was successfully loaded
             if not suit then
@@ -59,9 +59,9 @@ local function createSpiderManSuitTool()
                 return
             end
 
-            -- Remove any existing suit parts (if applicable)
+            -- Remove any existing suit parts
             for _, part in ipairs(character:GetChildren()) do
-                if part:IsA("Clothing") then
+                if part:IsA("Model") and part ~= suit then
                     part:Destroy()
                 end
             end
@@ -70,7 +70,7 @@ local function createSpiderManSuitTool()
             suit.Parent = character
 
             -- Set a timeout to remove the suit after 10 seconds
-            Debris:AddItem(suit, 10)
+            game:GetService("Debris"):AddItem(suit, 10)
         end
 
         -- Function to handle tool activation
