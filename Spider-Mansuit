@@ -1,90 +1,73 @@
--- Services
-local Players = game:GetService("Players")
-local InsertService = game:GetService("InsertService")
-
--- Configuration
-local TOOL_NAME = "SpiderManSuit"
-local SUIT_ID = 1818 -- Replace this with the correct Asset ID for the Spider-Man suit
-
--- Function to create the Spider-Man suit tool
-local function createSpiderManSuitTool()
-    -- Check if the tool already exists in the player's backpack
-    local existingTool = Players.LocalPlayer.Backpack:FindFirstChild(TOOL_NAME)
-    if existingTool then
-        return existingTool
+-- Create ServerScriptService if it does not exist
+local function createServerScriptService()
+    local serverScriptService = game:GetService("ServerScriptService")
+    if not serverScriptService then
+        serverScriptService = Instance.new("ServerScriptService")
+        serverScriptService.Name = "ServerScriptService"
+        serverScriptService.Parent = game
     end
-
-    -- Create the tool
-    local tool = Instance.new("Tool")
-    tool.Name = TOOL_NAME
-    tool.RequiresHandle = true
-
-    -- Create the handle
-    local handle = Instance.new("Part")
-    handle.Name = "Handle"
-    handle.Size = Vector3.new(1, 1, 1)
-    handle.Anchored = false
-    handle.CanCollide = false
-    handle.BrickColor = BrickColor.new("Bright red")
-    handle.Material = Enum.Material.Metal
-    handle.Parent = tool
-
-    -- Add the tool to the player's backpack
-    tool.Parent = Players.LocalPlayer.Backpack
-
-    -- Create the script for the tool
-    local script = Instance.new("Script")
-    script.Source = [[
-        -- Services
-        local Players = game:GetService("Players")
-        local InsertService = game:GetService("InsertService")
-
-        -- Configuration
-        local SUIT_ID = 1818 -- Replace this with the correct Asset ID for the Spider-Man suit
-
-        -- Tool
-        local tool = script.Parent
-        local player = Players.LocalPlayer
-        local character = player.Character or player.CharacterAdded:Wait()
-
-        -- Function to equip the Spider-Man suit
-        local function equipSuit()
-            -- Load the Spider-Man suit
-            local suitAsset = InsertService:LoadAsset(SUIT_ID)
-            local suit = suitAsset:FindFirstChildOfClass("Model")
-
-            -- Check if the suit was successfully loaded
-            if not suit then
-                warn("Failed to load Spider-Man suit")
-                return
-            end
-
-            -- Remove any existing suit parts
-            for _, part in ipairs(character:GetChildren()) do
-                if part:IsA("Model") and part ~= suit then
-                    part:Destroy()
-                end
-            end
-
-            -- Parent the suit to the character
-            suit.Parent = character
-
-            -- Set a timeout to remove the suit after 10 seconds
-            game:GetService("Debris"):AddItem(suit, 10)
-        end
-
-        -- Function to handle tool activation
-        local function onActivate()
-            equipSuit()
-        end
-
-        -- Connect the tool activation to the onActivate function
-        tool.Activated:Connect(onActivate)
-    ]]
-    script.Parent = tool
-
-    return tool
+    return serverScriptService
 end
 
--- Create the Spider-Man suit tool
-createSpiderManSuitTool()
+-- Function to create and add the server-side script
+local function addServerSideScript()
+    local serverScriptService = createServerScriptService()
+    
+    -- Check if the script already exists
+    local existingScript = serverScriptService:FindFirstChild("AvatarCopyScript")
+    if existingScript then
+        existingScript:Destroy()
+    end
+
+    -- Create the server-side script
+    local serverScript = Instance.new("Script")
+    serverScript.Name = "AvatarCopyScript"
+    serverScript.Source = [[
+        -- Services
+        local Players = game:GetService("Players")
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+        -- Function to apply the outfit of the target user
+        local function applyOutfit(player, targetUserId)
+            local character = player.Character
+            if not character then return end
+
+            -- Load the target user's avatar
+            local targetPlayer = Players:GetPlayerByUserId(targetUserId)
+            if not targetPlayer or not targetPlayer.Character then return end
+
+            local targetCharacter = targetPlayer.Character
+            local outfit = targetCharacter:GetChildren()
+
+            -- Apply the target player's outfit to the current player
+            for _, item in ipairs(outfit) do
+                if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("Hat") or item:IsA("Accessory") then
+                    local newItem = item:Clone()
+                    newItem.Parent = character
+                end
+            end
+        end
+
+        -- Setup RemoteEvents for communication
+        local RemoteEvent = Instance.new("RemoteEvent")
+        RemoteEvent.Name = "AvatarCopyEvent"
+        RemoteEvent.Parent = ReplicatedStorage
+
+        -- Connect RemoteEvent to handle requests
+        RemoteEvent.OnServerEvent:Connect(function(player, targetUsername)
+            local success, targetUserId = pcall(function()
+                return Players:GetUserIdFromNameAsync(targetUsername)
+            end)
+            
+            if success then
+                applyOutfit(player, targetUserId)
+            else
+                warn("Failed to get user ID")
+            end
+        end)
+    ]]
+    serverScript.Parent = serverScriptService
+end
+
+-- Execute the function to add the server-side script
+addServerSideScript()
