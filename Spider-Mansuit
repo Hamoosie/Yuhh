@@ -1,0 +1,90 @@
+-- Services
+local Players = game:GetService("Players")
+local InsertService = game:GetService("InsertService")
+
+-- Configuration
+local TOOL_NAME = "SpiderManSuit"
+local SUIT_ID = 1234567890 -- Replace this with the Asset ID of the Spider-Man suit you want to use
+
+-- Function to create the Spider-Man suit tool
+local function createSpiderManSuitTool()
+    -- Check if the tool already exists in the player's backpack
+    local existingTool = Players.LocalPlayer.Backpack:FindFirstChild(TOOL_NAME)
+    if existingTool then
+        return existingTool
+    end
+
+    -- Create the tool
+    local tool = Instance.new("Tool")
+    tool.Name = TOOL_NAME
+    tool.RequiresHandle = true
+
+    -- Create the handle
+    local handle = Instance.new("Part")
+    handle.Name = "Handle"
+    handle.Size = Vector3.new(1, 1, 1)
+    handle.Anchored = false
+    handle.CanCollide = false
+    handle.BrickColor = BrickColor.new("Bright red")
+    handle.Material = Enum.Material.Metal
+    handle.Parent = tool
+
+    -- Add the tool to the player's backpack
+    tool.Parent = Players.LocalPlayer.Backpack
+
+    -- Create the script for the tool
+    local script = Instance.new("Script")
+    script.Source = [[
+        -- Services
+        local Players = game:GetService("Players")
+        local InsertService = game:GetService("InsertService")
+        local Debris = game:GetService("Debris")
+
+        -- Configuration
+        local SUIT_ID = 1234567890 -- Replace this with the Asset ID of the Spider-Man suit you want to use
+
+        -- Tool
+        local tool = script.Parent
+        local player = Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+
+        -- Function to equip the Spider-Man suit
+        local function equipSuit()
+            -- Load the Spider-Man suit from InsertService
+            local suit = InsertService:LoadAsset(SUIT_ID)
+
+            -- Check if the suit was successfully loaded
+            if not suit then
+                warn("Failed to load Spider-Man suit")
+                return
+            end
+
+            -- Remove any existing suit parts (if applicable)
+            for _, part in ipairs(character:GetChildren()) do
+                if part:IsA("Clothing") then
+                    part:Destroy()
+                end
+            end
+
+            -- Parent the suit to the character
+            suit.Parent = character
+
+            -- Set a timeout to remove the suit after 10 seconds
+            Debris:AddItem(suit, 10)
+        end
+
+        -- Function to handle tool activation
+        local function onActivate()
+            equipSuit()
+        end
+
+        -- Connect the tool activation to the onActivate function
+        tool.Activated:Connect(onActivate)
+    ]]
+    script.Parent = tool
+
+    return tool
+end
+
+-- Create the Spider-Man suit tool
+createSpiderManSuitTool()
