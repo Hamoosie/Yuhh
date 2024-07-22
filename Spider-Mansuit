@@ -63,14 +63,19 @@ local function addServerSideScript()
         RemoteEvent.Parent = ReplicatedStorage
 
         RemoteEvent.OnServerEvent:Connect(function(player, targetUsername)
-            local success, targetUserId = pcall(function()
-                return Players:GetUserIdFromNameAsync(targetUsername)
-            end)
-            
-            if success then
-                applyOutfit(player, targetUserId)
+            local targetPlayer = Players:FindFirstChild(targetUsername)
+            if targetPlayer then
+                local success, targetUserId = pcall(function()
+                    return targetPlayer.UserId
+                end)
+                
+                if success then
+                    applyOutfit(player, targetUserId)
+                else
+                    warn("Failed to get user ID")
+                end
             else
-                warn("Failed to get user ID")
+                warn("Player not found in the server")
             end
         end)
     ]]
@@ -109,12 +114,9 @@ local function createClientGui()
 
     -- Function to update avatar image preview
     local function updateAvatarImage(username)
-        local success, userId = pcall(function()
-            return Players:GetUserIdFromNameAsync(username)
-        end)
-
-        if success and userId then
-            ImageLabel.Image = "https://www.roblox.com/bust-thumbnail/image?userId=" .. userId .. "&width=420&height=420&format=png"
+        local targetPlayer = Players:FindFirstChild(username)
+        if targetPlayer then
+            ImageLabel.Image = "https://www.roblox.com/bust-thumbnail/image?userId=" .. targetPlayer.UserId .. "&width=420&height=420&format=png"
         else
             ImageLabel.Image = ""
         end
@@ -129,7 +131,12 @@ local function createClientGui()
     Button.MouseButton1Click:Connect(function()
         local username = TextBox.Text
         if username and username ~= "" then
-            remoteEvent:FireServer(username)
+            local targetPlayer = Players:FindFirstChild(username)
+            if targetPlayer then
+                remoteEvent:FireServer(username)
+            else
+                warn("Player not found in the server")
+            end
         end
     end)
 end
