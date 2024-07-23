@@ -4,14 +4,15 @@ local Players = game:GetService("Players")
 -- Print message indicating the script has been executed
 print("Script has been executed successfully.")
 
--- Helper function to teleport the local player to another player
+-- Function to teleport the local player to another player
 local function teleportToPlayer(targetPlayer)
     local localPlayer = Players.LocalPlayer
-    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+    if localPlayer and localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") and
+       targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
         localPlayer.Character:SetPrimaryPartCFrame(targetPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 5, 0)) -- Slightly above the target to avoid collision
         print("Teleported to " .. targetPlayer.Name)
     else
-        print("Target player is not available or their character is missing.")
+        print("Teleportation failed: Local player or target player character is missing.")
     end
 end
 
@@ -28,7 +29,7 @@ local function onChatMessage(player, message)
             -- Find the player by username or partial username
             local targetPlayer = nil
             for _, p in ipairs(Players:GetPlayers()) do
-                if p.Name:lower():sub(1, #username):lower() == username:lower() then
+                if p.Name:lower():sub(1, #username) == username:lower() then
                     targetPlayer = p
                     break
                 end
@@ -51,7 +52,7 @@ local function onChatMessage(player, message)
     end
 end
 
--- Detect when a player sends a chat message
+-- Function to connect chat message handler to players
 local function detectChatMessages()
     -- Listen for when a player joins the game
     Players.PlayerAdded:Connect(function(player)
@@ -66,7 +67,7 @@ local function detectChatMessages()
         player.Chatted:Connect(function(message)
             onChatMessage(player, message)
         end)
-    end)
+    end
 end
 
 -- Start detecting chat messages
