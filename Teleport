@@ -95,7 +95,8 @@ local function onChatMessage(player, message)
         print(player.Name .. " wants to bring " .. arg)
         local targetPlayer = nil
         arg = arg:lower()
-        local originalPosition = player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character.HumanoidRootPart.CFrame
+        local character = player.Character
+        local originalPosition = character and character:FindFirstChild("HumanoidRootPart") and character.HumanoidRootPart.CFrame
 
         for _, p in ipairs(game.Players:GetPlayers()) do
             if p.Name:lower():sub(1, #arg) == arg then
@@ -105,12 +106,11 @@ local function onChatMessage(player, message)
         end
         
         if targetPlayer and targetPlayer.Character then
-            local character = player.Character
             local targetCharacter = targetPlayer.Character
             local targetHumanoidRootPart = targetCharacter:FindFirstChild("HumanoidRootPart")
 
             if character and targetHumanoidRootPart then
-                -- Teleport to the target player and knock them
+                -- Knock the target player
                 character:SetPrimaryPartCFrame(targetHumanoidRootPart.CFrame - targetCharacter.HumanoidRootPart.CFrame.LookVector * 2)
                 wait(0.1)
                 
@@ -131,7 +131,7 @@ local function onChatMessage(player, message)
                             
                             -- Check if the target player is knocked
                             local targetHumanoid = targetPlayer.Character:FindFirstChildOfClass("Humanoid")
-                            if targetHumanoid and targetHumanoid.Health <= 10 then
+                            if targetHumanoid and targetHumanoid.Health <= 0 then
                                 break
                             end
                         end
@@ -152,12 +152,14 @@ local function onChatMessage(player, message)
                             character:SetPrimaryPartCFrame(originalPosition)
                             wait(0.1)
                             
-                            -- Run the code again after returning
+                            -- Run the grabbing code again after returning
                             game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
                         end
                     end
                 end
             end
+        else
+            print("Target player or character not found.")
         end
 
     elseif command == "!unknock" then
