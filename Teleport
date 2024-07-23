@@ -2,7 +2,6 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
-local ServerScriptService = game:GetService("ServerScriptService")
 
 -- Create RemoteEvent for teleporting
 local teleportEvent = Instance.new("RemoteEvent")
@@ -10,22 +9,27 @@ teleportEvent.Name = "TeleportEvent"
 teleportEvent.Parent = ReplicatedStorage
 
 -- Server-Side Script to Handle Teleporting
-local serverScript = Instance.new("Script")
-serverScript.Name = "TeleportScript"
-serverScript.Source = [[
-    local Players = game:GetService("Players")
-    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local function createServerScript()
+    local script = Instance.new("Script")
+    script.Name = "TeleportScript"
+    script.Source = [[
+        local Players = game:GetService("Players")
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-    local teleportEvent = ReplicatedStorage:WaitForChild("TeleportEvent")
+        local teleportEvent = ReplicatedStorage:WaitForChild("TeleportEvent")
 
-    teleportEvent.OnServerEvent:Connect(function(player, targetPlayerName)
-        local targetPlayer = Players:FindFirstChild(targetPlayerName)
-        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            player.Character:SetPrimaryPartCFrame(targetPlayer.Character.HumanoidRootPart.CFrame)
-        end
-    end)
-]]
-serverScript.Parent = ServerScriptService
+        teleportEvent.OnServerEvent:Connect(function(player, targetPlayerName)
+            local targetPlayer = Players:FindFirstChild(targetPlayerName)
+            if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                player.Character:SetPrimaryPartCFrame(targetPlayer.Character.HumanoidRootPart.CFrame)
+            end
+        end)
+    ]]
+    script.Parent = game:GetService("ServerScriptService")
+end
+
+-- Ensure the server-side script is created
+createServerScript()
 
 -- Client-Side Script to Create GUI
 local player = Players.LocalPlayer
@@ -41,6 +45,8 @@ local toggleButton = Instance.new("TextButton")
 toggleButton.Size = UDim2.new(0.1, 0, 0.1, 0)
 toggleButton.Position = UDim2.new(0.05, 0, 0.05, 0)
 toggleButton.Text = "Menu"
+toggleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 255)
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 toggleButton.Parent = screenGui
 
 -- Create Menu Frame
