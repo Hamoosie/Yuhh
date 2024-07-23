@@ -1,241 +1,124 @@
--- Create UI
-local ScreenGui = Instance.new("ScreenGui")
-local Frame = Instance.new("Frame")
-local TextBox = Instance.new("TextBox")
-local TeleportButton = Instance.new("TextButton")
-local KnockButton = Instance.new("TextButton")
-local AutoStompButton = Instance.new("TextButton")
-local ViewButton = Instance.new("TextButton")
+-- Setup for UI elements
+local player = game.Players.LocalPlayer
+local screenGui = Instance.new("ScreenGui", player.PlayerGui)
+local menuFrame = Instance.new("Frame", screenGui)
+menuFrame.Size = UDim2.new(0, 200, 0, 300)
+menuFrame.Position = UDim2.new(0, 0, 0, 0)
+menuFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 
-ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-ScreenGui.Name = "TeleportGui"
+local teleportButton = Instance.new("TextButton", menuFrame)
+teleportButton.Size = UDim2.new(1, 0, 0, 50)
+teleportButton.Position = UDim2.new(0, 0, 0, 0)
+teleportButton.Text = "Teleport"
+teleportButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
 
-Frame.Parent = ScreenGui
-Frame.Size = UDim2.new(0, 200, 0, 300)
-Frame.Position = UDim2.new(0, 0, 0.5, -150)
+local knockButton = Instance.new("TextButton", menuFrame)
+knockButton.Size = UDim2.new(1, 0, 0, 50)
+knockButton.Position = UDim2.new(0, 0, 0, 50)
+knockButton.Text = "Knock"
+knockButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 
-TextBox.Parent = Frame
-TextBox.Size = UDim2.new(0, 140, 0, 50)
-TextBox.Position = UDim2.new(0, 0, 0, 0)
-TextBox.PlaceholderText = "Enter Player Name"
-TextBox.Text = ""
+local viewButton = Instance.new("TextButton", menuFrame)
+viewButton.Size = UDim2.new(1, 0, 0, 50)
+viewButton.Position = UDim2.new(0, 0, 0, 100)
+viewButton.Text = "View"
+viewButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
 
-TeleportButton.Parent = Frame
-TeleportButton.Size = UDim2.new(0, 60, 0, 50)
-TeleportButton.Position = UDim2.new(0, 140, 0, 0)
-TeleportButton.Text = "Teleport"
-
-KnockButton.Parent = Frame
-KnockButton.Size = UDim2.new(0, 60, 0, 50)
-KnockButton.Position = UDim2.new(0, 140, 0, 50)
-KnockButton.Text = "Knock"
-
-AutoStompButton.Parent = Frame
-AutoStompButton.Size = UDim2.new(0, 60, 0, 50)
-AutoStompButton.Position = UDim2.new(0, 140, 0, 100)
-AutoStompButton.Text = "Auto Stomp"
-AutoStompButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (off)
-
-ViewButton.Parent = Frame
-ViewButton.Size = UDim2.new(0, 60, 0, 50)
-ViewButton.Position = UDim2.new(0, 140, 0, 150)
-ViewButton.Text = "View"
-ViewButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (off)
-
-local teleporting = false
-local knockActive = false
-local autoStompActive = false
+-- Local variables for tracking state
+local targetPlayerName = ""
 local targetPlayer = nil
-local previousPlayer = nil
+local knocking = false
 local spectating = false
-local currentSpectatePlayer = nil
 
-local function teleportToPlayer(partialName)
-    local foundPlayer = nil
-    partialName = partialName:lower()
-
-    -- Iterate through all players to find a match
+-- Function to update target player
+local function updateTargetPlayer(name)
+    targetPlayer = nil
     for _, player in ipairs(game.Players:GetPlayers()) do
-        if string.sub(player.Name:lower(), 1, #partialName) == partialName then
-            foundPlayer = player
+        if player.Name:lower():sub(1, #name) == name:lower() then
+            targetPlayer = player
             break
         end
     end
-
-    if foundPlayer then
-        targetPlayer = foundPlayer
-        previousPlayer = targetPlayer
-        print("Teleporting to " .. foundPlayer.Name)
-        local character = game.Players.LocalPlayer.Character
-        local targetCharacter = foundPlayer.Character
-
-        if character and targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
-            -- Teleport very close to the target
-            local targetPosition = targetCharacter.HumanoidRootPart.Position + targetCharacter.HumanoidRootPart.CFrame.LookVector * -0.2 -- Closer adjustment
-            character:SetPrimaryPartCFrame(CFrame.new(targetPosition, targetCharacter.HumanoidRootPart.Position))
-            teleporting = true
-        else
-            print("Teleport failed: Target player's HumanoidRootPart not found.")
-        end
-    else
-        print("No player found with name starting with: " .. partialName)
-        targetPlayer = nil
-        knockActive = false -- Stop knocking if player not found
-    end
 end
 
-local function activateCombatTool()
-    local backpack = game.Players.LocalPlayer.Backpack
-    local tool = backpack:FindFirstChild("Combat")
-    if tool then
-        -- Equip the tool
-        tool.Parent = game.Players.LocalPlayer.Character
-        local humanoid = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if humanoid then
-            humanoid:EquipTool(tool)
-            print("Combat tool equipped.")
-        else
-            print("Humanoid not found.")
-        end
-    else
-        print("Combat tool not found.")
-    end
-end
-
-local function knockBehindPlayer()
+-- Function to teleport to the target player
+local function teleportToPlayer()
     if targetPlayer then
-        activateCombatTool()
-        knockActive = true
-        while knockActive and targetPlayer do
-            local character = game.Players.LocalPlayer.Character
-            local targetCharacter = targetPlayer.Character
-
-            if character and targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
-                -- Continuously adjust position behind the target player
-                local targetPosition = targetCharacter.HumanoidRootPart.Position + targetCharacter.HumanoidRootPart.CFrame.LookVector * -0.2 -- Closer adjustment
-                local characterPosition = character.HumanoidRootPart.Position
-                local targetDirection = (targetCharacter.HumanoidRootPart.Position - characterPosition).unit
-                character:SetPrimaryPartCFrame(CFrame.new(targetPosition, targetCharacter.HumanoidRootPart.Position))
-                wait(0.1)
-                local args = {
-                    [1] = "ChargeButton"
-                }
-                game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
-            else
-                print("Failed to teleport behind player.")
-                break
+        local targetChar = targetPlayer.Character
+        if targetChar then
+            local targetHRP = targetChar:FindFirstChild("HumanoidRootPart")
+            if targetHRP then
+                player.Character:SetPrimaryPartCFrame(targetHRP.CFrame + Vector3.new(0, 5, 0))
             end
         end
-    else
+    end
+end
+
+-- Function to start or stop knocking
+local function toggleKnock()
+    if not targetPlayer then
         print("No target player to knock.")
+        return
     end
-end
 
-local function startAutoStomp()
-    while autoStompActive do
-        local args = {
-            [1] = "Stomp"
-        }
-        game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
-        wait(0.5) -- Adjust the wait time as needed
-    end
-end
+    knocking = not knocking
+    knockButton.BackgroundColor3 = knocking and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
 
-local function toggleView()
-    local partialName = TextBox.Text:lower()
+    while knocking do
+        if targetPlayer then
+            local targetChar = targetPlayer.Character
+            if targetChar then
+                local targetHRP = targetChar:FindFirstChild("HumanoidRootPart")
+                if targetHRP then
+                    -- Teleport behind the player
+                    player.Character:SetPrimaryPartCFrame(targetHRP.CFrame - (targetHRP.CFrame.LookVector * 5))
 
-    if partialName and partialName ~= "" then
-        local foundPlayer = nil
-
-        -- Iterate through all players to find a match
-        for _, player in ipairs(game.Players:GetPlayers()) do
-            if string.sub(player.Name:lower(), 1, #partialName) == partialName then
-                foundPlayer = player
-                break
-            end
-        end
-
-        if foundPlayer then
-            local character = game.Players.LocalPlayer.Character
-            local targetCharacter = foundPlayer.Character
-
-            if not spectating then
-                -- Start spectating the player
-                currentSpectatePlayer = foundPlayer
-                if targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
-                    game.Workspace.CurrentCamera.CameraSubject = targetCharacter:FindFirstChild("Humanoid") or targetCharacter
-                    spectating = true
-                    ViewButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Green (on)
-                    print("Spectating " .. foundPlayer.Name)
-                else
-                    print("Target player's character not found.")
+                    -- Fire the event
+                    local args = { [1] = "ChargeButton" }
+                    game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
+                    
+                    wait(1) -- Adjust delay as needed
                 end
-            else
-                -- Stop spectating
-                game.Workspace.CurrentCamera.CameraSubject = game.Players.LocalPlayer.Character
-                spectating = false
-                currentSpectatePlayer = nil
-                ViewButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (off)
-                print("Stopped spectating.")
-            end
-        else
-            -- No player found to spectate
-            if spectating then
-                game.Workspace.CurrentCamera.CameraSubject = game.Players.LocalPlayer.Character
-                spectating = false
-                currentSpectatePlayer = nil
-                ViewButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (off)
-                print("Stopped spectating because player not found.")
             end
         end
-    else
-        print("Please enter a player's name to view.")
+        wait(0.1) -- Adjust frequency as needed
     end
 end
 
-TeleportButton.MouseButton1Click:Connect(function()
-    local partialName = TextBox.Text
-    if partialName and partialName ~= "" then
-        teleportToPlayer(partialName)
-    else
-        print("Please enter a player's name.")
-    end
-end)
+-- Function to start or stop spectating
+local function toggleSpectate()
+    local targetChar = targetPlayer and targetPlayer.Character
+    local targetHRP = targetChar and targetChar:FindFirstChild("HumanoidRootPart")
 
-KnockButton.MouseButton1Click:Connect(function()
-    local partialName = TextBox.Text
-    if partialName and partialName ~= "" then
-        if targetPlayer and targetPlayer.Name:lower():sub(1, #partialName) == partialName:lower() then
-            if not knockActive then
-                activateCombatTool()
-                knockBehindPlayer()
-            else
-                knockActive = false
-                print("Knock stopped.")
-            end
+    if targetHRP then
+        if spectating then
+            -- Stop spectating
+            workspace.CurrentCamera.CameraSubject = player.Character.Humanoid
+            workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
+            spectating = false
+            viewButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
         else
-            local oldTargetPlayer = targetPlayer
-            teleportToPlayer(partialName) -- Update target player
-            if targetPlayer and targetPlayer ~= oldTargetPlayer then
-                activateCombatTool()
-                knockBehindPlayer()
-            else
-                print("No valid target player to knock.")
-            end
+            -- Start spectating
+            workspace.CurrentCamera.CameraSubject = targetHRP
+            workspace.CurrentCamera.CameraType = Enum.CameraType.Scriptable
+            workspace.CurrentCamera.CFrame = targetHRP.CFrame
+            spectating = true
+            viewButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
         end
     else
-        print("Please enter a player's name to knock.")
+        print("Target player character not found.")
     end
-end)
-
-AutoStompButton.MouseButton1Click:Connect(function()
-    autoStompActive = not autoStompActive
-    if autoStompActive then
-        AutoStompButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0) – Green (on)
-startAutoStomp()
-else
-AutoStompButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) – Red (off)
 end
+
+-- Connect buttons to functions
+teleportButton.MouseButton1Click:Connect(function()
+    local name = player.PlayerGui:FindFirstChild("PlayerNameInput").Text
+    updateTargetPlayer(name)
+    teleportToPlayer()
 end)
 
-ViewButton.MouseButton1Click:Connect(toggleView)
+knockButton.MouseButton1Click:Connect(toggleKnock)
+
+viewButton.MouseButton1Click:Connect(toggleSpectate)
+
+print("Script executed successfully.")
