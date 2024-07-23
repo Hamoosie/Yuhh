@@ -3,24 +3,31 @@ local player = game.Players.LocalPlayer
 local screenGui = Instance.new("ScreenGui", player.PlayerGui)
 local menuFrame = Instance.new("Frame", screenGui)
 menuFrame.Size = UDim2.new(0, 200, 0, 300)
-menuFrame.Position = UDim2.new(0, 0, 0, 0)
+menuFrame.Position = UDim2.new(0, 0, 0.2, 0)  -- Moved down by 20% of the screen height
 menuFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+
+local playerNameInput = Instance.new("TextBox", menuFrame)
+playerNameInput.Size = UDim2.new(1, 0, 0, 50)
+playerNameInput.Position = UDim2.new(0, 0, 0, 0)
+playerNameInput.PlaceholderText = "Enter player name"
+playerNameInput.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+playerNameInput.TextColor3 = Color3.fromRGB(0, 0, 0)
 
 local teleportButton = Instance.new("TextButton", menuFrame)
 teleportButton.Size = UDim2.new(1, 0, 0, 50)
-teleportButton.Position = UDim2.new(0, 0, 0, 0)
+teleportButton.Position = UDim2.new(0, 0, 0, 50)
 teleportButton.Text = "Teleport"
 teleportButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
 
 local knockButton = Instance.new("TextButton", menuFrame)
 knockButton.Size = UDim2.new(1, 0, 0, 50)
-knockButton.Position = UDim2.new(0, 0, 0, 50)
+knockButton.Position = UDim2.new(0, 0, 0, 100)
 knockButton.Text = "Knock"
 knockButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 
 local viewButton = Instance.new("TextButton", menuFrame)
 viewButton.Size = UDim2.new(1, 0, 0, 50)
-viewButton.Position = UDim2.new(0, 0, 0, 100)
+viewButton.Position = UDim2.new(0, 0, 0, 150)
 viewButton.Text = "View"
 viewButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
 
@@ -70,8 +77,8 @@ local function toggleKnock()
             if targetChar then
                 local targetHRP = targetChar:FindFirstChild("HumanoidRootPart")
                 if targetHRP then
-                    -- Teleport behind the player
-                    player.Character:SetPrimaryPartCFrame(targetHRP.CFrame - (targetHRP.CFrame.LookVector * 5))
+                    -- Teleport closer to the player
+                    player.Character:SetPrimaryPartCFrame(targetHRP.CFrame - (targetHRP.CFrame.LookVector * 2))
 
                     -- Fire the event
                     local args = { [1] = "ChargeButton" }
@@ -112,7 +119,7 @@ end
 
 -- Connect buttons to functions
 teleportButton.MouseButton1Click:Connect(function()
-    local name = player.PlayerGui:FindFirstChild("PlayerNameInput").Text
+    local name = playerNameInput.Text
     updateTargetPlayer(name)
     teleportToPlayer()
 end)
