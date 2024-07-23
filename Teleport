@@ -2,14 +2,15 @@
 local ScreenGui = Instance.new("ScreenGui")
 local Frame = Instance.new("Frame")
 local TextBox = Instance.new("TextBox")
-local Button = Instance.new("TextButton")
+local TeleportButton = Instance.new("TextButton")
+local KnockButton = Instance.new("TextButton")
 
 ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.Name = "TeleportGui"
 
 Frame.Parent = ScreenGui
-Frame.Size = UDim2.new(0, 200, 0, 50)
-Frame.Position = UDim2.new(0, 0, 0.5, -25)
+Frame.Size = UDim2.new(0, 200, 0, 100)
+Frame.Position = UDim2.new(0, 0, 0.5, -50)
 
 TextBox.Parent = Frame
 TextBox.Size = UDim2.new(0, 140, 0, 50)
@@ -17,10 +18,19 @@ TextBox.Position = UDim2.new(0, 0, 0, 0)
 TextBox.PlaceholderText = "Enter Player Name"
 TextBox.Text = ""
 
-Button.Parent = Frame
-Button.Size = UDim2.new(0, 60, 0, 50)
-Button.Position = UDim2.new(0, 140, 0, 0)
-Button.Text = "Teleport"
+TeleportButton.Parent = Frame
+TeleportButton.Size = UDim2.new(0, 60, 0, 50)
+TeleportButton.Position = UDim2.new(0, 140, 0, 0)
+TeleportButton.Text = "Teleport"
+
+KnockButton.Parent = Frame
+KnockButton.Size = UDim2.new(0, 60, 0, 50)
+KnockButton.Position = UDim2.new(0, 140, 0, 50)
+KnockButton.Text = "Knock"
+
+local teleporting = false
+local knockActive = false
+local targetPlayer = nil
 
 local function teleportToPlayer(partialName)
     local foundPlayer = nil
@@ -34,12 +44,14 @@ local function teleportToPlayer(partialName)
     end
 
     if foundPlayer then
+        targetPlayer = foundPlayer
         print("Teleporting to " .. foundPlayer.Name)
         local character = game.Players.LocalPlayer.Character
         local targetCharacter = foundPlayer.Character
 
         if character and targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
             character:MoveTo(targetCharacter.HumanoidRootPart.Position)
+            teleporting = true
         else
             print("Teleport failed: Target player's HumanoidRootPart not found.")
         end
@@ -48,11 +60,57 @@ local function teleportToPlayer(partialName)
     end
 end
 
-Button.MouseButton1Click:Connect(function()
+local function activateCombatTool()
+    local backpack = game.Players.LocalPlayer.Backpack
+    local tool = backpack:FindFirstChild("combat")
+    if tool then
+        tool.Parent = game.Players.LocalPlayer.Character
+        game.Players.LocalPlayer.Character:WaitForChild("Humanoid"):EquipTool(tool)
+    else
+        print("Combat tool not found.")
+    end
+end
+
+local function knockBehindPlayer()
+    while knockActive and targetPlayer do
+        local character = game.Players.LocalPlayer.Character
+        local targetCharacter = targetPlayer.Character
+
+        if character and targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
+            local targetPosition = targetCharacter.HumanoidRootPart.Position - (targetCharacter.HumanoidRootPart.CFrame.LookVector * 5)
+            character:MoveTo(targetPosition)
+            wait(0.1)
+            local args = {
+                [1] = "ChargeButton"
+            }
+            game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
+        else
+            print("Failed to teleport behind player.")
+            break
+        end
+    end
+end
+
+TeleportButton.MouseButton1Click:Connect(function()
     local partialName = TextBox.Text
     if partialName and partialName ~= "" then
         teleportToPlayer(partialName)
     else
         print("Please enter a player's name.")
+    end
+end)
+
+KnockButton.MouseButton1Click:Connect(function()
+    if not knockActive then
+        if targetPlayer then
+            activateCombatTool()
+            knockActive = true
+            knockBehindPlayer()
+        else
+            print("No target player to knock.")
+        end
+    else
+        knockActive = false
+        print("Knock stopped.")
     end
 end)
