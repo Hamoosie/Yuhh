@@ -1,6 +1,5 @@
 -- Services
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- Print message indicating the script has been executed
 print("Script has been executed successfully.")
@@ -67,7 +66,7 @@ local function detectChatMessages()
         player.Chatted:Connect(function(message)
             onChatMessage(player, message)
         end)
-    end
+    end)
 end
 
 -- Start detecting chat messages
