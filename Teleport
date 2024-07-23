@@ -25,6 +25,7 @@ Button.Text = "Teleport"
 local function teleportToPlayer(partialName)
     local foundPlayer = nil
 
+    -- Iterate through all players to find a match
     for _, player in ipairs(game.Players:GetPlayers()) do
         if string.sub(player.Name:lower(), 1, #partialName:lower()) == partialName:lower() then
             foundPlayer = player
@@ -35,8 +36,10 @@ local function teleportToPlayer(partialName)
     if foundPlayer then
         print("Teleporting to " .. foundPlayer.Name)
         local character = game.Players.LocalPlayer.Character
-        if character and foundPlayer.Character and foundPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            character:MoveTo(foundPlayer.Character.HumanoidRootPart.Position)
+        local targetCharacter = foundPlayer.Character
+
+        if character and targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
+            character:MoveTo(targetCharacter.HumanoidRootPart.Position)
         else
             print("Teleport failed: Target player's HumanoidRootPart not found.")
         end
