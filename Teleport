@@ -96,47 +96,37 @@ local function onChatMessage(player, message)
                 if humanoid then
                     humanoid:EquipTool(combatTool)
                     
-                    -- Teleport to the target player initially
+                    -- Teleport and follow target player
                     local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
                     local targetHumanoidRootPart = targetCharacter:FindFirstChild("HumanoidRootPart")
                     
                     if humanoidRootPart and targetHumanoidRootPart then
-                        -- Calculate direction to teleport precisely behind the target
-                        local direction = (targetHumanoidRootPart.Position - humanoidRootPart.Position).Unit
-                        local offset = direction * 0.2 -- Positive offset to be behind the player
-                        local targetPosition = targetHumanoidRootPart.Position + offset
-                        
-                        -- Teleport behind target and face the target
-                        humanoidRootPart.CFrame = CFrame.new(targetPosition, targetHumanoidRootPart.Position)
-
                         -- Resize target's hitbox
                         local targetHumanoid = targetCharacter:FindFirstChildOfClass("Humanoid")
                         if targetHumanoid then
-                            targetHumanoid.BodyWidthScale.Value = 4 -- Example value
-                            targetHumanoid.BodyHeightScale.Value = 3 -- Example value
-                            targetHumanoid.BodyDepthScale.Value = 4 -- Example value
+                            targetHumanoid.BodyWidthScale.Value = 2 -- Example value
+                            targetHumanoid.BodyHeightScale.Value = 2 -- Example value
+                            targetHumanoid.BodyDepthScale.Value = 2 -- Example value
                         end
 
-                        -- Perform knock action
+                        -- Follow target and keep inside
                         local following = true
                         while following do
-                            -- Spam knock action
+                            -- Teleport behind target and keep facing them
                             wait(0.1) -- Short delay before next attack to spam effectively
                             
-                            -- Fire the knock action
+                            -- Spam knock action
                             local args = {
                                 [1] = "ChargeButton"
                             }
                             game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
 
-                            -- Update position to follow the target player
-                            humanoidRootPart.CFrame = CFrame.new(targetPosition, targetHumanoidRootPart.Position)
+                            -- Calculate direction to teleport precisely behind the target
+                            local direction = (targetHumanoidRootPart.Position - humanoidRootPart.Position).Unit
+                            local offset = direction * -2 -- Negative offset to be directly behind the player
+                            local targetPosition = targetHumanoidRootPart.Position + offset
                             
-                            -- Recalculate new position to stay behind the target
-                            local newDirection = (targetHumanoidRootPart.Position - humanoidRootPart.Position).Unit
-                            targetPosition = targetHumanoidRootPart.Position + newDirection * 1
-                            
-                            -- Update CFrame to ensure staying behind the target
+                            -- Teleport and face the target
                             humanoidRootPart.CFrame = CFrame.new(targetPosition, targetHumanoidRootPart.Position)
                             
                             -- Check if target is knocked (low health) and stop if so
