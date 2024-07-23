@@ -10,8 +10,8 @@ ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.Name = "TeleportGui"
 
 Frame.Parent = ScreenGui
-Frame.Size = UDim2.new(0, 200, 0, 200) -- Increased height for AutoStompButton
-Frame.Position = UDim2.new(0, 0, 0.5, -100)
+Frame.Size = UDim2.new(0, 200, 0, 250) -- Increased height for AutoStompButton
+Frame.Position = UDim2.new(0, 0, 0.5, -125)
 
 TextBox.Parent = Frame
 TextBox.Size = UDim2.new(0, 140, 0, 50)
@@ -39,6 +39,7 @@ local teleporting = false
 local knockActive = false
 local autoStompActive = false
 local targetPlayer = nil
+local previousPlayer = nil
 
 local function teleportToPlayer(partialName)
     local foundPlayer = nil
@@ -54,13 +55,14 @@ local function teleportToPlayer(partialName)
 
     if foundPlayer then
         targetPlayer = foundPlayer
+        previousPlayer = targetPlayer
         print("Teleporting to " .. foundPlayer.Name)
         local character = game.Players.LocalPlayer.Character
         local targetCharacter = foundPlayer.Character
 
         if character and targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
             -- Teleport very close to the target and make sure character faces the target
-            local targetPosition = targetCharacter.HumanoidRootPart.Position + targetCharacter.HumanoidRootPart.CFrame.LookVector * -0.5
+            local targetPosition = targetCharacter.HumanoidRootPart.Position + targetCharacter.HumanoidRootPart.CFrame.LookVector * -0.1
             character:SetPrimaryPartCFrame(CFrame.new(targetPosition, targetCharacter.HumanoidRootPart.Position))
             teleporting = true
         else
@@ -142,22 +144,23 @@ end)
 KnockButton.MouseButton1Click:Connect(function()
     local partialName = TextBox.Text
     if partialName and partialName ~= "" then
-        local oldTargetPlayer = targetPlayer
-        teleportToPlayer(partialName) -- Update target player
-        if not knockActive then
-            if targetPlayer then
-                if targetPlayer ~= oldTargetPlayer then
-                    activateCombatTool()
-                    knockBehindPlayer()
-                else
-                    print("Already knocking the current target.")
-                end
+        if targetPlayer and targetPlayer.Name:lower():sub(1, #partialName) == partialName:lower() then
+            if not knockActive then
+                activateCombatTool()
+                knockBehindPlayer()
             else
-                print("No target player to knock.")
+                knockActive = false
+                print("Knock stopped.")
             end
         else
-            knockActive = false
-            print("Knock stopped.")
+            local oldTargetPlayer = targetPlayer
+            teleportToPlayer(partialName) -- Update target player
+            if targetPlayer and targetPlayer ~= oldTargetPlayer then
+                activateCombatTool()
+                knockBehindPlayer()
+            else
+                print("No valid target player to knock.")
+            end
         end
     else
         print("Please enter a player's name to knock.")
