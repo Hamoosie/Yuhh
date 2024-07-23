@@ -7,6 +7,7 @@ local function teleportToPlayer(targetPlayer)
     local localPlayer = Players.LocalPlayer
     if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
         localPlayer.Character:SetPrimaryPartCFrame(targetPlayer.Character.HumanoidRootPart.CFrame)
+        print("Teleported to " .. targetPlayer.Name)
     else
         print("Target player is not available or their character is missing.")
     end
@@ -14,10 +15,12 @@ end
 
 -- Function to handle chat messages
 local function onChatMessage(message, player)
+    print("Received message: " .. message) -- Debug: Show received chat message
     -- Check if the message starts with ".teleport "
     if message:sub(1, 10) == ".teleport " then
         local username = message:sub(11)
         if username and username ~= "" then
+            print("Searching for player with username starting with: " .. username) -- Debug: Show username being searched
             -- Find the player by username or partial username
             local players = Players:GetPlayers()
             local targetPlayer = nil
@@ -33,6 +36,8 @@ local function onChatMessage(message, player)
             else
                 print("No player found with username starting with: " .. username)
             end
+        else
+            print("Username is empty.")
         end
     end
 end
