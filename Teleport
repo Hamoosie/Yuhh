@@ -1,43 +1,14 @@
 -- Services
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
--- Create RemoteEvent for teleporting
-local teleportEvent = Instance.new("RemoteEvent")
-teleportEvent.Name = "TeleportEvent"
-teleportEvent.Parent = ReplicatedStorage
-
--- Server-Side Script to Handle Teleporting
-local function createServerScript()
-    local serverScript = Instance.new("Script")
-    serverScript.Name = "TeleportScript"
-    serverScript.Source = [[
-        local Players = game:GetService("Players")
-        local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-        local teleportEvent = ReplicatedStorage:WaitForChild("TeleportEvent")
-
-        teleportEvent.OnServerEvent:Connect(function(player, targetPlayerName)
-            local targetPlayer = Players:FindFirstChild(targetPlayerName)
-            if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                player.Character:SetPrimaryPartCFrame(targetPlayer.Character.HumanoidRootPart.CFrame)
-            end
-        end)
-    ]]
-    serverScript.Parent = game:GetService("ServerScriptService")
-end
-
--- Ensure the server-side script is created
-createServerScript()
-
--- Client-Side Script to Create GUI
+-- Create GUI
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
 -- Create ScreenGui
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "TeleportMenu"
+screenGui.Name = "PlayerMenu"
 screenGui.Parent = playerGui
 
 -- Create Toggle Button
@@ -89,10 +60,6 @@ local function createPlayerButton(playerName)
     button.Position = UDim2.new(0.05, 0, 0)
     button.Text = playerName
     button.Parent = playerList
-
-    button.MouseButton1Click:Connect(function()
-        ReplicatedStorage.TeleportEvent:FireServer(playerName)
-    end)
 end
 
 -- Update Player List
