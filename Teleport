@@ -1,92 +1,41 @@
 -- Services
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
+local Chat = game:GetService("Chat")
 
--- Create GUI
-local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
-
--- Create ScreenGui
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "PlayerMenu"
-screenGui.Parent = playerGui
-
--- Create Toggle Button
-local toggleButton = Instance.new("TextButton")
-toggleButton.Size = UDim2.new(0.1, 0, 0.05, 0)
-toggleButton.Position = UDim2.new(0.05, 0, 0.05, 0)
-toggleButton.Text = "Menu"
-toggleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 255)
-toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-toggleButton.Parent = screenGui
-
--- Create Menu Frame
-local menuFrame = Instance.new("Frame")
-menuFrame.Size = UDim2.new(0.3, 0, 0.5, 0)
-menuFrame.Position = UDim2.new(-0.35, 0, 0.1, 0)
-menuFrame.BackgroundTransparency = 0.5
-menuFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-menuFrame.Visible = false
-menuFrame.Parent = screenGui
-
--- Tween for opening and closing the menu
-local openTween = TweenService:Create(menuFrame, TweenInfo.new(0.5), {Position = UDim2.new(0.05, 0, 0.1, 0)})
-local closeTween = TweenService:Create(menuFrame, TweenInfo.new(0.5), {Position = UDim2.new(-0.35, 0, 0.1, 0)})
-
--- Toggle Menu Visibility
-local menuOpen = false
-toggleButton.MouseButton1Click:Connect(function()
-    menuOpen = not menuOpen
-    if menuOpen then
-        openTween:Play()
-        menuFrame.Visible = true
+-- Helper function to teleport the local player to another player
+local function teleportToPlayer(targetPlayer)
+    local localPlayer = Players.LocalPlayer
+    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        localPlayer.Character:MoveTo(targetPlayer.Character.HumanoidRootPart.Position)
     else
-        closeTween:Play()
-        menuFrame.Visible = false
+        print("Target player is not available.")
     end
-end)
-
--- Create Player List
-local playerList = Instance.new("ScrollingFrame")
-playerList.Size = UDim2.new(1, 0, 1, 0)
-playerList.Position = UDim2.new(0, 0, 0, 0)
-playerList.CanvasSize = UDim2.new(0, 0, 10, 0)
-playerList.ScrollBarThickness = 10
-playerList.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-playerList.BackgroundTransparency = 0.5
-playerList.Parent = menuFrame
-
--- UI List Layout
-local uiListLayout = Instance.new("UIListLayout")
-uiListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-uiListLayout.Parent = playerList
-
--- Function to Create Player Button
-local function createPlayerButton(playerName)
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(1, 0, 0.1, 0)
-    button.Text = playerName
-    button.BackgroundColor3 = Color3.fromRGB(0, 0, 255)
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    button.Parent = playerList
 end
 
--- Update Player List
-local function updatePlayerList()
-    playerList:ClearAllChildren()
-    -- Make sure the local player is not included
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player.Name ~= Players.LocalPlayer.Name then
-            createPlayerButton(player.Name)
+-- Function to handle chat messages
+local function onChatMessage(message, player)
+    -- Check if the message starts with ".teleport "
+    if message:sub(1, 10) == ".teleport " then
+        local username = message:sub(11)
+        if username then
+            -- Find the player by username or partial username
+            local players = Players:GetPlayers()
+            local targetPlayer = nil
+            for _, p in ipairs(players) do
+                if p.Name:lower():sub(1, username:len()):lower() == username:lower() then
+                    targetPlayer = p
+                    break
+                end
+            end
+            
+            if targetPlayer then
+                teleportToPlayer(targetPlayer)
+            else
+                print("No player found with username starting with: " .. username)
+            end
         end
     end
-    -- Update CanvasSize based on the number of players
-    playerList.CanvasSize = UDim2.new(0, 0, #Players:GetPlayers() * 0.1, 0)
 end
 
--- Initial Update
-updatePlayerList()
-
--- Update Player List when Players join or leave
-Players.PlayerAdded:Connect(updatePlayerList)
-Players.PlayerRemoving:Connect(updatePlayerList)
+-- Connect chat message handler
+Chat.Chatted:Connect(onChatMessage)
