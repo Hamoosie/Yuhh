@@ -5,13 +5,14 @@ local TextBox = Instance.new("TextBox")
 local TeleportButton = Instance.new("TextButton")
 local KnockButton = Instance.new("TextButton")
 local AutoStompButton = Instance.new("TextButton")
+local AutoBlockButton = Instance.new("TextButton")
 
 ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.Name = "TeleportGui"
 
 Frame.Parent = ScreenGui
-Frame.Size = UDim2.new(0, 200, 0, 250) -- Increased height for AutoStompButton
-Frame.Position = UDim2.new(0, 0, 0.5, -125)
+Frame.Size = UDim2.new(0, 200, 0, 300) -- Increased height for AutoBlockButton
+Frame.Position = UDim2.new(0, 0, 0.5, -150)
 
 TextBox.Parent = Frame
 TextBox.Size = UDim2.new(0, 140, 0, 50)
@@ -35,9 +36,16 @@ AutoStompButton.Position = UDim2.new(0, 140, 0, 100)
 AutoStompButton.Text = "Auto Stomp"
 AutoStompButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (off)
 
+AutoBlockButton.Parent = Frame
+AutoBlockButton.Size = UDim2.new(0, 60, 0, 50)
+AutoBlockButton.Position = UDim2.new(0, 140, 0, 150)
+AutoBlockButton.Text = "Auto Block"
+AutoBlockButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (off)
+
 local teleporting = false
 local knockActive = false
 local autoStompActive = false
+local autoBlockActive = false
 local targetPlayer = nil
 local previousPlayer = nil
 
@@ -103,7 +111,7 @@ local function knockBehindPlayer()
 
             if character and targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
                 -- Continuously adjust position behind the target player
-                local targetPosition = targetCharacter.HumanoidRootPart.Position + targetCharacter.HumanoidRootPart.CFrame.LookVector * -2 -- Adjusted to be more precise
+                local targetPosition = targetCharacter.HumanoidRootPart.Position + targetCharacter.HumanoidRootPart.CFrame.LookVector * -0.5 -- Adjusted to be more precise
                 local characterPosition = character.HumanoidRootPart.Position
                 local targetDirection = (targetCharacter.HumanoidRootPart.Position - characterPosition).unit
                 character:SetPrimaryPartCFrame(CFrame.new(targetPosition, targetCharacter.HumanoidRootPart.Position))
@@ -129,6 +137,17 @@ local function startAutoStomp()
         }
         game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
         wait(0.5) -- Adjust the wait time as needed
+    end
+end
+
+local function startAutoBlock()
+    while autoBlockActive do
+        local args = {
+            [1] = "Block",
+            [2] = true
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
+        wait(0.1) -- Adjust the wait time as needed
     end
 end
 
@@ -176,5 +195,17 @@ AutoStompButton.MouseButton1Click:Connect(function()
     else
         AutoStompButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (off)
         print("Auto Stomp deactivated.")
+    end
+end)
+
+AutoBlockButton.MouseButton1Click:Connect(function()
+    autoBlockActive = not autoBlockActive
+    if autoBlockActive then
+        AutoBlockButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Green (on)
+        print("Auto Block activated.")
+        startAutoBlock()
+    else
+        AutoBlockButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (off)
+        print("Auto Block deactivated.")
     end
 end)
