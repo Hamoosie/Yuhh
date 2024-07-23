@@ -1,41 +1,7 @@
--- Function to add ESP to a character
-local function addESPToCharacter(character)
-    if character:FindFirstChild("HumanoidRootPart") then
-        -- Create a BillboardGui for ESP
-        local billboardGui = Instance.new("BillboardGui")
-        billboardGui.Name = "ESP"
-        billboardGui.AlwaysOnTop = true
-        billboardGui.Size = UDim2.new(0, 100, 0, 100)
-        billboardGui.StudsOffset = Vector3.new(0, 2, 0)
-
-        -- Create a TextLabel for the player's name
-        local textLabel = Instance.new("TextLabel")
-        textLabel.Parent = billboardGui
-        textLabel.Size = UDim2.new(1, 0, 1, 0)
-        textLabel.BackgroundTransparency = 1
-        textLabel.Text = character.Name
-        textLabel.TextColor3 = Color3.new(math.random(), math.random(), math.random()) -- Random color
-        textLabel.TextScaled = true
-        textLabel.Font = Enum.Font.SourceSans
-        textLabel.TextSize = 14
-
-        -- Add the BillboardGui to the character
-        billboardGui.Parent = character.HumanoidRootPart
-
-        -- Create a Highlight for outlining the character
-        local highlight = Instance.new("Highlight")
-        highlight.Name = "Outline"
-        highlight.Adornee = character
-        highlight.OutlineColor = Color3.fromRGB(0, 255, 0) -- Change the color as needed
-        highlight.FillColor = Color3.fromRGB(0, 0, 0) -- Optional, set the fill color if needed
-        highlight.Parent = character
-    end
-end
-
 -- Function to handle chat commands
 local function onChatMessage(player, message)
     local command, arg = message:match("^(%S+)%s*(.*)")
-    
+
     if command == "!teleport" then
         -- Execute teleport command
         print(player.Name .. " wants to teleport to " .. arg)
@@ -96,49 +62,20 @@ local function onChatMessage(player, message)
                 if humanoid then
                     humanoid:EquipTool(combatTool)
                     
-                    -- Teleport and follow target player
+                    -- Move to the target
                     local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
                     local targetHumanoidRootPart = targetCharacter:FindFirstChild("HumanoidRootPart")
                     
                     if humanoidRootPart and targetHumanoidRootPart then
-                        -- Resize target's hitbox
-                        local targetHumanoid = targetCharacter:FindFirstChildOfClass("Humanoid")
-                        if targetHumanoid then
-                            targetHumanoid.BodyWidthScale.Value = 2 -- Example value
-                            targetHumanoid.BodyHeightScale.Value = 2 -- Example value
-                            targetHumanoid.BodyDepthScale.Value = 2 -- Example value
-                        end
-
-                        -- Follow target and keep inside
-                        local following = true
-                        while following do
-                            -- Teleport behind target and keep facing them
-                            wait(0.1) -- Short delay before next attack to spam effectively
-                            
-                            -- Spam knock action
+                        -- Continuously adjust position behind the target player
+                        while targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") do
+                            humanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame - targetPlayer.Character.HumanoidRootPart.CFrame.LookVector * 2
+                            wait(0.1)
+                            -- Spam the knock action
                             local args = {
                                 [1] = "ChargeButton"
                             }
                             game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
-
-                            -- Calculate direction to teleport precisely behind the target
-                            local direction = (targetHumanoidRootPart.Position - humanoidRootPart.Position).Unit
-                            local offset = direction * -2 -- Negative offset to be directly behind the player
-                            local targetPosition = targetHumanoidRootPart.Position + offset
-                            
-                            -- Teleport and face the target
-                            humanoidRootPart.CFrame = CFrame.new(targetPosition, targetHumanoidRootPart.Position)
-                            
-                            -- Check if target is knocked (low health) and stop if so
-                            if targetHumanoid and targetHumanoid.Health < 10 then
-                                print(targetPlayer.Name .. " is knocked.")
-                                following = false
-                                
-                                -- Restore target's hitbox
-                                targetHumanoid.BodyWidthScale.Value = 1
-                                targetHumanoid.BodyHeightScale.Value = 1
-                                targetHumanoid.BodyDepthScale.Value = 1
-                            end
                         end
                     else
                         print("HumanoidRootPart not found.")
@@ -151,6 +88,76 @@ local function onChatMessage(player, message)
             end
         else
             print("Target player or character not found.")
+        end
+
+    elseif command == "!bring" then
+        -- Execute bring command
+        print(player.Name .. " wants to bring " .. arg)
+        local targetPlayer = nil
+        arg = arg:lower()
+        local originalPosition = player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character.HumanoidRootPart.CFrame
+
+        for _, p in ipairs(game.Players:GetPlayers()) do
+            if p.Name:lower():sub(1, #arg) == arg then
+                targetPlayer = p
+                break
+            end
+        end
+        
+        if targetPlayer and targetPlayer.Character then
+            local character = player.Character
+            local targetCharacter = targetPlayer.Character
+            local targetHumanoidRootPart = targetCharacter:FindFirstChild("HumanoidRootPart")
+
+            if character and targetHumanoidRootPart then
+                -- Teleport to the target player and knock them
+                character:SetPrimaryPartCFrame(targetHumanoidRootPart.CFrame - targetCharacter.HumanoidRootPart.CFrame.LookVector * 2)
+                wait(0.1)
+                
+                -- Spam knock action
+                local combatTool = player.Backpack:FindFirstChild("Combat")
+                if combatTool then
+                    local humanoid = character:FindFirstChildOfClass("Humanoid")
+                    if humanoid then
+                        humanoid:EquipTool(combatTool)
+                        
+                        while targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") do
+                            character:SetPrimaryPartCFrame(targetPlayer.Character.HumanoidRootPart.CFrame - targetPlayer.Character.HumanoidRootPart.CFrame.LookVector * 2)
+                            wait(0.1)
+                            local args = {
+                                [1] = "ChargeButton"
+                            }
+                            game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
+                            
+                            -- Check if the target player is knocked
+                            local targetHumanoid = targetPlayer.Character:FindFirstChildOfClass("Humanoid")
+                            if targetHumanoid and targetHumanoid.Health <= 10 then
+                                break
+                            end
+                        end
+                        
+                        -- Teleport to the target player after knocking
+                        character:SetPrimaryPartCFrame(targetCharacter.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)) -- Adjust as needed
+                        wait(0.1)
+                        
+                        -- Run the code after knocking
+                        local args = {
+                            [1] = "Grabbing",
+                            [2] = false
+                        }
+                        game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
+                        
+                        -- Return to original position
+                        if originalPosition then
+                            character:SetPrimaryPartCFrame(originalPosition)
+                            wait(0.1)
+                            
+                            -- Run the code again after returning
+                            game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
+                        end
+                    end
+                end
+            end
         end
 
     elseif command == "!unknock" then
