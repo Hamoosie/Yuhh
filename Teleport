@@ -65,7 +65,13 @@ local function activateCombatTool()
     local tool = backpack:FindFirstChild("combat")
     if tool then
         tool.Parent = game.Players.LocalPlayer.Character
-        game.Players.LocalPlayer.Character:WaitForChild("Humanoid"):EquipTool(tool)
+        local humanoid = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid:EquipTool(tool)
+            print("Combat tool equipped.")
+        else
+            print("Humanoid not found.")
+        end
     else
         print("Combat tool not found.")
     end
