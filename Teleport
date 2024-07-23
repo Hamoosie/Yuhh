@@ -6,6 +6,7 @@ local TeleportButton = Instance.new("TextButton")
 local KnockButton = Instance.new("TextButton")
 local AutoStompButton = Instance.new("TextButton")
 local ViewButton = Instance.new("TextButton")
+local ToggleButton = Instance.new("TextButton")
 
 ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.Name = "TeleportGui"
@@ -13,6 +14,7 @@ ScreenGui.Name = "TeleportGui"
 Frame.Parent = ScreenGui
 Frame.Size = UDim2.new(0, 200, 0, 300) -- Adjusted height
 Frame.Position = UDim2.new(0, 0, 0.5, -150)
+Frame.Visible = false -- Start with the menu hidden
 
 TextBox.Parent = Frame
 TextBox.Size = UDim2.new(0, 140, 0, 50)
@@ -41,6 +43,12 @@ ViewButton.Size = UDim2.new(0, 60, 0, 50)
 ViewButton.Position = UDim2.new(0, 140, 0, 150)
 ViewButton.Text = "View"
 ViewButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (off)
+
+ToggleButton.Parent = ScreenGui
+ToggleButton.Size = UDim2.new(0, 60, 0, 30)
+ToggleButton.Position = UDim2.new(0, 0, 0.5, -150) -- Position the toggle button
+ToggleButton.Text = "Menu"
+ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 255) -- Blue
 
 local teleporting = false
 local knockActive = false
@@ -128,26 +136,15 @@ local function startAutoStomp()
 end
 
 local function toggleView()
-    local partialName = TextBox.Text:lower()
-    local foundPlayer = nil
-
-    -- Iterate through all players to find a match
-    for _, player in ipairs(game.Players:GetPlayers()) do
-        if string.sub(player.Name:lower(), 1, #partialName) == partialName then
-            foundPlayer = player
-            break
-        end
-    end
-
-    if foundPlayer then
+    if targetPlayer then
         local character = game.Players.LocalPlayer.Character
-        local targetCharacter = foundPlayer.Character
+        local targetCharacter = targetPlayer.Character
 
         if not spectating then
             -- Start spectating the player
-            currentSpectatePlayer = foundPlayer
+            currentSpectatePlayer = targetPlayer
             if targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
-                game.Players.LocalPlayer.CameraMode = Enum.CameraMode.Classic
+                game.Players.LocalPlayer.CameraMode = Enum.CameraMode.LockFirstPerson
                 game.Workspace.CurrentCamera.CameraSubject = targetCharacter:FindFirstChild("Humanoid") or targetCharacter
                 spectating = true
                 ViewButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Green (on)
@@ -160,14 +157,12 @@ local function toggleView()
             currentSpectatePlayer = nil
             ViewButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (off)
         end
-    else
-        game.Players.LocalPlayer.CameraMode = Enum.CameraMode.Classic
-        game.Workspace.CurrentCamera.CameraSubject = game.Players.LocalPlayer.Character
-        spectating = false
-        currentSpectatePlayer = nil
-        ViewButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (off)
     end
 end
+
+ToggleButton.MouseButton1Click:Connect(function()
+    Frame.Visible = not Frame.Visible
+end)
 
 TeleportButton.MouseButton1Click:Connect(function()
     local partialName = TextBox.Text
