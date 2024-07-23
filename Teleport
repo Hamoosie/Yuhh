@@ -1,0 +1,106 @@
+-- Services
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+
+-- Create RemoteEvent for teleporting
+local teleportEvent = Instance.new("RemoteEvent")
+teleportEvent.Name = "TeleportEvent"
+teleportEvent.Parent = ReplicatedStorage
+
+-- Server-Side Script to Handle Teleporting
+local serverScript = Instance.new("Script")
+serverScript.Name = "TeleportScript"
+serverScript.Source = [[
+    local Players = game:GetService("Players")
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+    local teleportEvent = ReplicatedStorage:WaitForChild("TeleportEvent")
+
+    teleportEvent.OnServerEvent:Connect(function(player, targetPlayerName)
+        local targetPlayer = Players:FindFirstChild(targetPlayerName)
+        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            player.Character:SetPrimaryPartCFrame(targetPlayer.Character.HumanoidRootPart.CFrame)
+        end
+    end)
+]]
+serverScript.Parent = game:GetService("ServerScriptService")
+
+-- Client-Side Script to Create GUI
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "TeleportMenu"
+screenGui.Parent = playerGui
+
+-- Create Toggle Button
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0.1, 0, 0.1, 0)
+toggleButton.Position = UDim2.new(0.05, 0, 0.05, 0)
+toggleButton.Text = "Menu"
+toggleButton.Parent = screenGui
+
+-- Create Menu Frame
+local menuFrame = Instance.new("Frame")
+menuFrame.Size = UDim2.new(0.3, 0, 0.5, 0)
+menuFrame.Position = UDim2.new(-0.35, 0, 0.1, 0)
+menuFrame.BackgroundTransparency = 0.5
+menuFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+menuFrame.Visible = false
+menuFrame.Parent = screenGui
+
+-- Tween for opening and closing the menu
+local openTween = TweenService:Create(menuFrame, TweenInfo.new(0.5), {Position = UDim2.new(0.05, 0, 0.1, 0)})
+local closeTween = TweenService:Create(menuFrame, TweenInfo.new(0.5), {Position = UDim2.new(-0.35, 0, 0.1, 0)})
+
+-- Toggle Menu Visibility
+local menuOpen = false
+toggleButton.TouchTapIn:Connect(function()
+    menuOpen = not menuOpen
+    if menuOpen then
+        openTween:Play()
+        menuFrame.Visible = true
+    else
+        closeTween:Play()
+        menuFrame.Visible = false
+    end
+end)
+
+-- Create Player List
+local playerList = Instance.new("ScrollingFrame")
+playerList.Size = UDim2.new(1, 0, 1, 0)
+playerList.CanvasSize = UDim2.new(0, 0, 2, 0)
+playerList.ScrollBarThickness = 10
+playerList.Parent = menuFrame
+
+-- Function to Create Player Button
+local function createPlayerButton(playerName)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0.9, 0, 0.1, 0)
+    button.Position = UDim2.new(0.05, 0, 0.05, 0)
+    button.Text = playerName
+    button.Parent = playerList
+
+    button.TouchTapIn:Connect(function()
+        ReplicatedStorage.TeleportEvent:FireServer(playerName)
+    end)
+end
+
+-- Update Player List
+local function updatePlayerList()
+    playerList:ClearAllChildren()
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player.Name ~= Players.LocalPlayer.Name then
+            createPlayerButton(player.Name)
+        end
+    end
+end
+
+-- Initial Update
+updatePlayerList()
+
+-- Update Player List when Players join or leave
+Players.PlayerAdded:Connect(updatePlayerList)
+Players.PlayerRemoving:Connect(updatePlayerList)
