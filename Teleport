@@ -60,6 +60,8 @@ local function teleportToPlayer(partialName)
         end
     else
         print("No player found with name starting with: " .. partialName)
+        targetPlayer = nil
+        knockActive = false -- Stop knocking if player not found
     end
 end
 
@@ -122,11 +124,16 @@ end)
 KnockButton.MouseButton1Click:Connect(function()
     local partialName = TextBox.Text
     if partialName and partialName ~= "" then
+        local oldTargetPlayer = targetPlayer
         teleportToPlayer(partialName) -- Update target player
         if not knockActive then
             if targetPlayer then
-                activateCombatTool()
-                knockBehindPlayer()
+                if targetPlayer ~= oldTargetPlayer then
+                    activateCombatTool()
+                    knockBehindPlayer()
+                else
+                    print("Already knocking the current target.")
+                end
             else
                 print("No target player to knock.")
             end
