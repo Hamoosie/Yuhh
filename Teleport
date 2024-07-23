@@ -5,13 +5,13 @@ local TextBox = Instance.new("TextBox")
 local TeleportButton = Instance.new("TextButton")
 local KnockButton = Instance.new("TextButton")
 local AutoStompButton = Instance.new("TextButton")
-local AutoBlockButton = Instance.new("TextButton")
+local ViewButton = Instance.new("TextButton")
 
 ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.Name = "TeleportGui"
 
 Frame.Parent = ScreenGui
-Frame.Size = UDim2.new(0, 200, 0, 300) -- Increased height for AutoBlockButton
+Frame.Size = UDim2.new(0, 200, 0, 300) -- Adjusted height
 Frame.Position = UDim2.new(0, 0, 0.5, -150)
 
 TextBox.Parent = Frame
@@ -36,18 +36,19 @@ AutoStompButton.Position = UDim2.new(0, 140, 0, 100)
 AutoStompButton.Text = "Auto Stomp"
 AutoStompButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (off)
 
-AutoBlockButton.Parent = Frame
-AutoBlockButton.Size = UDim2.new(0, 60, 0, 50)
-AutoBlockButton.Position = UDim2.new(0, 140, 0, 150)
-AutoBlockButton.Text = "Auto Block"
-AutoBlockButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (off)
+ViewButton.Parent = Frame
+ViewButton.Size = UDim2.new(0, 60, 0, 50)
+ViewButton.Position = UDim2.new(0, 140, 0, 150)
+ViewButton.Text = "View"
+ViewButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (off)
 
 local teleporting = false
 local knockActive = false
 local autoStompActive = false
-local autoBlockActive = false
 local targetPlayer = nil
 local previousPlayer = nil
+local spectating = false
+local currentSpectatePlayer = nil
 
 local function teleportToPlayer(partialName)
     local foundPlayer = nil
@@ -140,14 +141,34 @@ local function startAutoStomp()
     end
 end
 
-local function startAutoBlock()
-    while autoBlockActive do
-        local args = {
-            [1] = "Block",
-            [2] = true
-        }
-        game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
-        wait(0.1) -- Adjust the wait time as needed
+local function toggleView()
+    if targetPlayer then
+        local character = game.Players.LocalPlayer.Character
+        local targetCharacter = targetPlayer.Character
+
+        if not spectating then
+            -- Start spectating the player
+            currentSpectatePlayer = targetPlayer
+            if targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
+                game.Players.LocalPlayer.CameraMode = Enum.CameraMode.LockFirstPerson
+                game.Workspace.CurrentCamera.CameraSubject = targetCharacter:FindFirstChild("Humanoid") or targetCharacter
+                spectating = true
+                ViewButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Green (on)
+                print("Spectating " .. targetPlayer.Name)
+            else
+                print("Target player's character not found.")
+            end
+        else
+            -- Stop spectating
+            game.Players.LocalPlayer.CameraMode = Enum.CameraMode.Classic
+            game.Workspace.CurrentCamera.CameraSubject = game.Players.LocalPlayer.Character
+            spectating = false
+            currentSpectatePlayer = nil
+            ViewButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (off)
+            print("Stopped spectating.")
+        end
+    else
+        print("No target player to view.")
     end
 end
 
@@ -198,14 +219,6 @@ AutoStompButton.MouseButton1Click:Connect(function()
     end
 end)
 
-AutoBlockButton.MouseButton1Click:Connect(function()
-    autoBlockActive = not autoBlockActive
-    if autoBlockActive then
-        AutoBlockButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Green (on)
-        print("Auto Block activated.")
-        startAutoBlock()
-    else
-        AutoBlockButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (off)
-        print("Auto Block deactivated.")
-    end
+ViewButton.MouseButton1Click:Connect(function()
+    toggleView()
 end)
