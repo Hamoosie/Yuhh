@@ -50,7 +50,8 @@ local function teleportToPlayer(partialName)
         local targetCharacter = foundPlayer.Character
 
         if character and targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
-            character:MoveTo(targetCharacter.HumanoidRootPart.Position)
+            -- Teleport close to the target
+            character:MoveTo(targetCharacter.HumanoidRootPart.Position - (targetCharacter.HumanoidRootPart.CFrame.LookVector * 2))
             teleporting = true
         else
             print("Teleport failed: Target player's HumanoidRootPart not found.")
@@ -64,6 +65,7 @@ local function activateCombatTool()
     local backpack = game.Players.LocalPlayer.Backpack
     local tool = backpack:FindFirstChild("combat")
     if tool then
+        -- Equip the tool
         tool.Parent = game.Players.LocalPlayer.Character
         local humanoid = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
         if humanoid then
@@ -83,7 +85,7 @@ local function knockBehindPlayer()
         local targetCharacter = targetPlayer.Character
 
         if character and targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
-            local targetPosition = targetCharacter.HumanoidRootPart.Position - (targetCharacter.HumanoidRootPart.CFrame.LookVector * 5)
+            local targetPosition = targetCharacter.HumanoidRootPart.Position - (targetCharacter.HumanoidRootPart.CFrame.LookVector * 2)
             character:MoveTo(targetPosition)
             wait(0.1)
             local args = {
