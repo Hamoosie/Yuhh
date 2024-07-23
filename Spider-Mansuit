@@ -57,7 +57,7 @@ local closeTween = TweenService:Create(menuFrame, TweenInfo.new(0.5), {Position 
 
 -- Toggle Menu Visibility
 local menuOpen = false
-toggleButton.MouseButton1Click:Connect(function()
+toggleButton.TouchTapIn:Connect(function()
     menuOpen = not menuOpen
     if menuOpen then
         openTween:Play()
@@ -83,7 +83,7 @@ local function createPlayerButton(playerName)
     button.Text = playerName
     button.Parent = playerList
 
-    button.MouseButton1Click:Connect(function()
+    button.TouchTapIn:Connect(function()
         ReplicatedStorage.TeleportEvent:FireServer(playerName)
     end)
 end
