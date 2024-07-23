@@ -45,18 +45,15 @@ ViewButton.Text = "View"
 ViewButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (off)
 
 ToggleButton.Parent = ScreenGui
-ToggleButton.Size = UDim2.new(0, 60, 0, 30)
-ToggleButton.Position = UDim2.new(0, 0, 0.5, -150) -- Position the toggle button
-ToggleButton.Text = "Menu"
-ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 255) -- Blue
+ToggleButton.Size = UDim2.new(0, 60, 0, 50)
+ToggleButton.Position = UDim2.new(0, 0, 0.5, -200)
+ToggleButton.Text = "Toggle Menu"
 
 local teleporting = false
 local knockActive = false
 local autoStompActive = false
 local targetPlayer = nil
-local previousPlayer = nil
 local spectating = false
-local currentSpectatePlayer = nil
 
 local function teleportToPlayer(partialName)
     local foundPlayer = nil
@@ -72,15 +69,17 @@ local function teleportToPlayer(partialName)
 
     if foundPlayer then
         targetPlayer = foundPlayer
-        previousPlayer = targetPlayer
         local character = game.Players.LocalPlayer.Character
         local targetCharacter = foundPlayer.Character
 
         if character and targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
             -- Teleport very close to the target and make sure character faces the target
-            local targetPosition = targetCharacter.HumanoidRootPart.Position + targetCharacter.HumanoidRootPart.CFrame.LookVector * -0.5 -- Adjusted closer
+            local targetPosition = targetCharacter.HumanoidRootPart.Position + targetCharacter.HumanoidRootPart.CFrame.LookVector * -0.1 -- Adjusted closer
             character:SetPrimaryPartCFrame(CFrame.new(targetPosition, targetCharacter.HumanoidRootPart.Position))
             teleporting = true
+        else
+            targetPlayer = nil
+            knockActive = false -- Stop knocking if player not found
         end
     else
         targetPlayer = nil
@@ -111,15 +110,15 @@ local function knockBehindPlayer()
 
             if character and targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
                 -- Continuously adjust position behind the target player
-                local targetPosition = targetCharacter.HumanoidRootPart.Position + targetCharacter.HumanoidRootPart.CFrame.LookVector * -0.5 -- Adjusted to be more precise
-                local characterPosition = character.HumanoidRootPart.Position
-                local targetDirection = (targetCharacter.HumanoidRootPart.Position - characterPosition).unit
+                local targetPosition = targetCharacter.HumanoidRootPart.Position + targetCharacter.HumanoidRootPart.CFrame.LookVector * -0.1 -- Adjusted to be more precise
                 character:SetPrimaryPartCFrame(CFrame.new(targetPosition, targetCharacter.HumanoidRootPart.Position))
                 wait(0.1)
                 local args = {
                     [1] = "ChargeButton"
                 }
                 game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
+            else
+                break
             end
         end
     end
@@ -136,33 +135,46 @@ local function startAutoStomp()
 end
 
 local function toggleView()
-    if targetPlayer then
+    local partialName = TextBox.Text
+    local foundPlayer = nil
+    partialName = partialName:lower()
+
+    -- Iterate through all players to find a match
+    for _, player in ipairs(game.Players:GetPlayers()) do
+        if string.sub(player.Name:lower(), 1, #partialName) == partialName then
+            foundPlayer = player
+            break
+        end
+    end
+
+    if foundPlayer then
+        targetPlayer = foundPlayer
         local character = game.Players.LocalPlayer.Character
-        local targetCharacter = targetPlayer.Character
+        local targetCharacter = foundPlayer.Character
 
         if not spectating then
             -- Start spectating the player
-            currentSpectatePlayer = targetPlayer
             if targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
-                game.Players.LocalPlayer.CameraMode = Enum.CameraMode.LockFirstPerson
                 game.Workspace.CurrentCamera.CameraSubject = targetCharacter:FindFirstChild("Humanoid") or targetCharacter
                 spectating = true
                 ViewButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Green (on)
             end
         else
             -- Stop spectating
-            game.Players.LocalPlayer.CameraMode = Enum.CameraMode.Classic
             game.Workspace.CurrentCamera.CameraSubject = game.Players.LocalPlayer.Character
             spectating = false
-            currentSpectatePlayer = nil
+            ViewButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (off)
+        end
+    else
+        targetPlayer = nil
+        if spectating then
+            -- Stop spectating if no player found
+            game.Workspace.CurrentCamera.CameraSubject = game.Players.LocalPlayer.Character
+            spectating = false
             ViewButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (off)
         end
     end
 end
-
-ToggleButton.MouseButton1Click:Connect(function()
-    Frame.Visible = not Frame.Visible
-end)
 
 TeleportButton.MouseButton1Click:Connect(function()
     local partialName = TextBox.Text
@@ -204,4 +216,8 @@ end)
 
 ViewButton.MouseButton1Click:Connect(function()
     toggleView()
+end)
+
+ToggleButton.MouseButton1Click:Connect(function()
+    Frame.Visible = not Frame.Visible
 end)
