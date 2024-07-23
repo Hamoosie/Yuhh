@@ -2,6 +2,9 @@
 local Players = game:GetService("Players")
 local Chat = game:GetService("Chat")
 
+-- Print message indicating the script has been executed
+print("Script has been executed successfully.")
+
 -- Helper function to teleport the local player to another player
 local function teleportToPlayer(targetPlayer)
     local localPlayer = Players.LocalPlayer
