@@ -1,6 +1,6 @@
 -- Services
 local Players = game:GetService("Players")
-local Chat = game:GetService("Chat")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- Print message indicating the script has been executed
 print("Script has been executed successfully.")
@@ -17,8 +17,8 @@ local function teleportToPlayer(targetPlayer)
 end
 
 -- Function to handle chat messages
-local function onChatMessage(message, player)
-    print("Received message: " .. message) -- Debug: Show received chat message
+local function onChatMessage(player, message)
+    print("Received message from " .. player.Name .. ": " .. message) -- Debug: Show received chat message
 
     -- Check if the message starts with ".teleport "
     if message and message:sub(1, 10) == ".teleport " then
@@ -52,9 +52,25 @@ local function onChatMessage(message, player)
     end
 end
 
--- Connect chat message handler
-Chat.Chatted:Connect(function(message, player)
-    -- Print the player and message for debugging
-    print("Chat message received from player: " .. player.Name)
-    onChatMessage(message, player)
-end)
+-- Detect when a player sends a chat message
+local function detectChatMessages()
+    -- Listen for when a player joins the game
+    Players.PlayerAdded:Connect(function(player)
+        -- Listen for chat messages from the player
+        player.Chatted:Connect(function(message)
+            onChatMessage(player, message)
+        end)
+    end)
+
+    -- Connect to already existing players
+    for _, player in ipairs(Players:GetPlayers()) do
+        player.Chatted:Connect(function(message)
+            onChatMessage(player, message)
+        end)
+    end
+end
+
+-- Start detecting chat messages
+detectChatMessages()
+
+print("Chat message detection setup complete.")
