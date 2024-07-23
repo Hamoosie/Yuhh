@@ -51,8 +51,9 @@ local function teleportToPlayer(partialName)
         local targetCharacter = foundPlayer.Character
 
         if character and targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
-            -- Teleport close to the target
-            character:SetPrimaryPartCFrame(targetCharacter.PrimaryPart.CFrame * CFrame.new(0, 0, -1)) -- Closer teleport
+            -- Teleport very close to the target and make sure character faces the target
+            local targetPosition = targetCharacter.HumanoidRootPart.Position + targetCharacter.HumanoidRootPart.CFrame.LookVector * -0.5
+            character:SetPrimaryPartCFrame(CFrame.new(targetPosition, targetCharacter.HumanoidRootPart.Position))
             teleporting = true
         else
             print("Teleport failed: Target player's HumanoidRootPart not found.")
@@ -89,8 +90,9 @@ local function knockBehindPlayer()
             local targetCharacter = targetPlayer.Character
 
             if character and targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
-                local targetPosition = targetCharacter.HumanoidRootPart.Position - (targetCharacter.HumanoidRootPart.CFrame.LookVector * 1) -- Adjusted closer
-                character:SetPrimaryPartCFrame(CFrame.new(targetPosition))
+                -- Teleport closer and ensure the player is facing the target
+                local targetPosition = targetCharacter.HumanoidRootPart.Position + targetCharacter.HumanoidRootPart.CFrame.LookVector * -0.5 -- Adjusted closer
+                character:SetPrimaryPartCFrame(CFrame.new(targetPosition, targetCharacter.HumanoidRootPart.Position))
                 wait(0.1)
                 local args = {
                     [1] = "ChargeButton"
