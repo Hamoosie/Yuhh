@@ -10,9 +10,9 @@ teleportEvent.Parent = ReplicatedStorage
 
 -- Server-Side Script to Handle Teleporting
 local function createServerScript()
-    local script = Instance.new("Script")
-    script.Name = "TeleportScript"
-    script.Source = [[
+    local serverScript = Instance.new("Script")
+    serverScript.Name = "TeleportScript"
+    serverScript.Source = [[
         local Players = game:GetService("Players")
         local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -25,7 +25,7 @@ local function createServerScript()
             end
         end)
     ]]
-    script.Parent = game:GetService("ServerScriptService")
+    serverScript.Parent = game:GetService("ServerScriptService")
 end
 
 -- Ensure the server-side script is created
