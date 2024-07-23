@@ -1,8 +1,39 @@
 -- Services
 local Players = game:GetService("Players")
+local StarterGui = game:GetService("StarterGui")
 
 -- Print message indicating the script has been executed
 print("Script has been executed successfully.")
+
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "TeleportGui"
+screenGui.Parent = game.CoreGui
+
+-- Create Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 300, 0, 100)
+frame.Position = UDim2.new(0.5, -150, 0.1, 0)
+frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+frame.BackgroundTransparency = 0.5
+frame.Parent = screenGui
+
+-- Create TextBox for player name input
+local textBox = Instance.new("TextBox")
+textBox.Size = UDim2.new(0.8, 0, 0.4, 0)
+textBox.Position = UDim2.new(0.1, 0, 0.1, 0)
+textBox.PlaceholderText = "Enter Player's Name"
+textBox.TextScaled = true
+textBox.Parent = frame
+
+-- Create Button to trigger teleport
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0.8, 0, 0.4, 0)
+button.Position = UDim2.new(0.1, 0, 0.55, 0)
+button.Text = "Teleport"
+button.TextScaled = true
+button.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+button.Parent = frame
 
 -- Function to teleport the local player to another player
 local function teleportToPlayer(targetPlayer)
@@ -16,61 +47,35 @@ local function teleportToPlayer(targetPlayer)
     end
 end
 
--- Function to handle chat messages
-local function onChatMessage(player, message)
-    print("Received message from " .. player.Name .. ": " .. message) -- Debug: Show received chat message
+-- Button click event
+button.MouseButton1Click:Connect(function()
+    local username = textBox.Text
+    if username and username ~= "" then
+        print("Searching for player with username: " .. username) -- Debug: Show username being searched
 
-    -- Check if the message starts with ".teleport "
-    if message and message:sub(1, 10) == ".teleport " then
-        local username = message:sub(11)
-        if username and username ~= "" then
-            print("Searching for player with username starting with: " .. username) -- Debug: Show username being searched
-
-            -- Find the player by username or partial username
-            local targetPlayer = nil
-            for _, p in ipairs(Players:GetPlayers()) do
-                if p.Name:lower():sub(1, #username) == username:lower() then
-                    targetPlayer = p
-                    break
-                end
+        -- Find the player by username
+        local targetPlayer = nil
+        for _, p in ipairs(Players:GetPlayers()) do
+            if p.Name:lower() == username:lower() then
+                targetPlayer = p
+                break
             end
-            
-            if targetPlayer then
-                -- Ensure the teleportation happens with consideration of network latency and game restrictions
-                local success, err = pcall(function()
-                    teleportToPlayer(targetPlayer)
-                end)
-                if not success then
-                    print("Failed to teleport: " .. err)
-                end
-            else
-                print("No player found with username starting with: " .. username)
+        end
+
+        if targetPlayer then
+            -- Ensure the teleportation happens with consideration of network latency and game restrictions
+            local success, err = pcall(function()
+                teleportToPlayer(targetPlayer)
+            end)
+            if not success then
+                print("Failed to teleport: " .. err)
             end
         else
-            print("Username is empty.")
+            print("No player found with username: " .. username)
         end
+    else
+        print("Username is empty.")
     end
-end
+end)
 
--- Function to connect chat message handler to players
-local function detectChatMessages()
-    -- Listen for when a player joins the game
-    Players.PlayerAdded:Connect(function(player)
-        -- Listen for chat messages from the player
-        player.Chatted:Connect(function(message)
-            onChatMessage(player, message)
-        end)
-    end)
-
-    -- Connect to already existing players
-    for _, player in ipairs(Players:GetPlayers()) do
-        player.Chatted:Connect(function(message)
-            onChatMessage(player, message)
-        end)
-    end
-end
-
--- Start detecting chat messages
-detectChatMessages()
-
-print("Chat message detection setup complete.")
+print("UI setup complete.")
