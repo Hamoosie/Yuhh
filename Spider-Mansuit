@@ -61,8 +61,10 @@ toggleButton.MouseButton1Click:Connect(function()
     menuOpen = not menuOpen
     if menuOpen then
         openTween:Play()
+        menuFrame.Visible = true
     else
         closeTween:Play()
+        menuFrame.Visible = false
     end
 end)
 
