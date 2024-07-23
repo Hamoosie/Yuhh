@@ -1,7 +1,6 @@
 -- Services
 local Players = game:GetService("Players")
 local Chat = game:GetService("Chat")
-local RunService = game:GetService("RunService")
 
 -- Print message indicating the script has been executed
 print("Script has been executed successfully.")
@@ -20,15 +19,16 @@ end
 -- Function to handle chat messages
 local function onChatMessage(message, player)
     print("Received message: " .. message) -- Debug: Show received chat message
+
     -- Check if the message starts with ".teleport "
-    if message:sub(1, 10) == ".teleport " then
+    if message and message:sub(1, 10) == ".teleport " then
         local username = message:sub(11)
         if username and username ~= "" then
             print("Searching for player with username starting with: " .. username) -- Debug: Show username being searched
+
             -- Find the player by username or partial username
-            local players = Players:GetPlayers()
             local targetPlayer = nil
-            for _, p in ipairs(players) do
+            for _, p in ipairs(Players:GetPlayers()) do
                 if p.Name:lower():sub(1, #username):lower() == username:lower() then
                     targetPlayer = p
                     break
@@ -53,4 +53,8 @@ local function onChatMessage(message, player)
 end
 
 -- Connect chat message handler
-Chat.Chatted:Connect(onChatMessage)
+Chat.Chatted:Connect(function(message, player)
+    -- Print the player and message for debugging
+    print("Chat message received from player: " .. player.Name)
+    onChatMessage(message, player)
+end)
