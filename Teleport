@@ -11,7 +11,7 @@ ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.Name = "TeleportGui"
 
 Frame.Parent = ScreenGui
-Frame.Size = UDim2.new(0, 200, 0, 300) -- Adjusted height
+Frame.Size = UDim2.new(0, 200, 0, 300)
 Frame.Position = UDim2.new(0, 0, 0.5, -150)
 
 TextBox.Parent = Frame
@@ -70,8 +70,8 @@ local function teleportToPlayer(partialName)
         local targetCharacter = foundPlayer.Character
 
         if character and targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
-            -- Teleport very close to the target and make sure character faces the target
-            local targetPosition = targetCharacter.HumanoidRootPart.Position + targetCharacter.HumanoidRootPart.CFrame.LookVector * -0.5 -- Adjusted closer
+            -- Teleport very close to the target
+            local targetPosition = targetCharacter.HumanoidRootPart.Position + targetCharacter.HumanoidRootPart.CFrame.LookVector * -0.2 -- Closer adjustment
             character:SetPrimaryPartCFrame(CFrame.new(targetPosition, targetCharacter.HumanoidRootPart.Position))
             teleporting = true
         else
@@ -112,7 +112,7 @@ local function knockBehindPlayer()
 
             if character and targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
                 -- Continuously adjust position behind the target player
-                local targetPosition = targetCharacter.HumanoidRootPart.Position + targetCharacter.HumanoidRootPart.CFrame.LookVector * -0.5 -- Adjusted to be more precise
+                local targetPosition = targetCharacter.HumanoidRootPart.Position + targetCharacter.HumanoidRootPart.CFrame.LookVector * -0.2 -- Closer adjustment
                 local characterPosition = character.HumanoidRootPart.Position
                 local targetDirection = (targetCharacter.HumanoidRootPart.Position - characterPosition).unit
                 character:SetPrimaryPartCFrame(CFrame.new(targetPosition, targetCharacter.HumanoidRootPart.Position))
@@ -142,33 +142,54 @@ local function startAutoStomp()
 end
 
 local function toggleView()
-    if targetPlayer then
-        local character = game.Players.LocalPlayer.Character
-        local targetCharacter = targetPlayer.Character
+    local partialName = TextBox.Text:lower()
 
-        if not spectating then
-            -- Start spectating the player
-            currentSpectatePlayer = targetPlayer
-            if targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
-                game.Players.LocalPlayer.CameraMode = Enum.CameraMode.LockFirstPerson
-                game.Workspace.CurrentCamera.CameraSubject = targetCharacter:FindFirstChild("Humanoid") or targetCharacter
-                spectating = true
-                ViewButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Green (on)
-                print("Spectating " .. targetPlayer.Name)
+    if partialName and partialName ~= "" then
+        local foundPlayer = nil
+
+        -- Iterate through all players to find a match
+        for _, player in ipairs(game.Players:GetPlayers()) do
+            if string.sub(player.Name:lower(), 1, #partialName) == partialName then
+                foundPlayer = player
+                break
+            end
+        end
+
+        if foundPlayer then
+            local character = game.Players.LocalPlayer.Character
+            local targetCharacter = foundPlayer.Character
+
+            if not spectating then
+                -- Start spectating the player
+                currentSpectatePlayer = foundPlayer
+                if targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
+                    game.Workspace.CurrentCamera.CameraSubject = targetCharacter:FindFirstChild("Humanoid") or targetCharacter
+                    spectating = true
+                    ViewButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Green (on)
+                    print("Spectating " .. foundPlayer.Name)
+                else
+                    print("Target player's character not found.")
+                end
             else
-                print("Target player's character not found.")
+                -- Stop spectating
+                game.Workspace.CurrentCamera.CameraSubject = game.Players.LocalPlayer.Character
+                spectating = false
+                currentSpectatePlayer = nil
+                ViewButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (off)
+                print("Stopped spectating.")
             end
         else
-            -- Stop spectating
-            game.Players.LocalPlayer.CameraMode = Enum.CameraMode.Classic
-            game.Workspace.CurrentCamera.CameraSubject = game.Players.LocalPlayer.Character
-            spectating = false
-            currentSpectatePlayer = nil
-            ViewButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (off)
-            print("Stopped spectating.")
+            -- No player found to spectate
+            if spectating then
+                game.Workspace.CurrentCamera.CameraSubject = game.Players.LocalPlayer.Character
+                spectating = false
+                currentSpectatePlayer = nil
+                ViewButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (off)
+                print("Stopped spectating because player not found.")
+            end
         end
     else
-        print("No target player to view.")
+        print("Please enter a player's name to view.")
     end
 end
 
@@ -210,15 +231,11 @@ end)
 AutoStompButton.MouseButton1Click:Connect(function()
     autoStompActive = not autoStompActive
     if autoStompActive then
-        AutoStompButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Green (on)
-        print("Auto Stomp activated.")
-        startAutoStomp()
-    else
-        AutoStompButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (off)
-        print("Auto Stomp deactivated.")
-    end
+        AutoStompButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0) – Green (on)
+startAutoStomp()
+else
+AutoStompButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) – Red (off)
+end
 end)
 
-ViewButton.MouseButton1Click:Connect(function()
-    toggleView()
-end)
+ViewButton.MouseButton1Click:Connect(toggleView)
