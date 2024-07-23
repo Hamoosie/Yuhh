@@ -34,10 +34,11 @@ local targetPlayer = nil
 
 local function teleportToPlayer(partialName)
     local foundPlayer = nil
+    partialName = partialName:lower()
 
     -- Iterate through all players to find a match
     for _, player in ipairs(game.Players:GetPlayers()) do
-        if string.sub(player.Name:lower(), 1, #partialName:lower()) == partialName:lower() then
+        if string.sub(player.Name:lower(), 1, #partialName) == partialName then
             foundPlayer = player
             break
         end
@@ -51,7 +52,7 @@ local function teleportToPlayer(partialName)
 
         if character and targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
             -- Teleport close to the target
-            character:SetPrimaryPartCFrame(targetCharacter.PrimaryPart.CFrame * CFrame.new(0, 0, -2))
+            character:SetPrimaryPartCFrame(targetCharacter.PrimaryPart.CFrame * CFrame.new(0, 0, -1)) -- Closer teleport
             teleporting = true
         else
             print("Teleport failed: Target player's HumanoidRootPart not found.")
@@ -88,7 +89,7 @@ local function knockBehindPlayer()
             local targetCharacter = targetPlayer.Character
 
             if character and targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
-                local targetPosition = targetCharacter.HumanoidRootPart.Position - (targetCharacter.HumanoidRootPart.CFrame.LookVector * 2)
+                local targetPosition = targetCharacter.HumanoidRootPart.Position - (targetCharacter.HumanoidRootPart.CFrame.LookVector * 1) -- Adjusted closer
                 character:SetPrimaryPartCFrame(CFrame.new(targetPosition))
                 wait(0.1)
                 local args = {
