@@ -1,106 +1,67 @@
--- Services
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TweenService = game:GetService("TweenService")
-
--- Create RemoteEvent for teleporting
-local teleportEvent = Instance.new("RemoteEvent")
-teleportEvent.Name = "TeleportEvent"
-teleportEvent.Parent = ReplicatedStorage
-
--- Server-Side Script to Handle Teleporting
-local serverScript = Instance.new("Script")
-serverScript.Name = "TeleportScript"
-serverScript.Source = [[
-    local Players = game:GetService("Players")
+-- Create the new server-side script
+local function createServerScript()
+    -- Get the ReplicatedStorage service
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local Players = game:GetService("Players")
+    local ServerScriptService = game:GetService("ServerScriptService")
+    
+    -- Create a new Script instance
+    local newScript = Instance.new("Script")
+    newScript.Name = "GiveItemScript"
+    
+    -- Define the script content
+    local scriptContent = [[
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local Players = game:GetService("Players")
 
-    local teleportEvent = ReplicatedStorage:WaitForChild("TeleportEvent")
-
-    teleportEvent.OnServerEvent:Connect(function(player, targetPlayerName)
-        local targetPlayer = Players:FindFirstChild(targetPlayerName)
-        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            player.Character:SetPrimaryPartCFrame(targetPlayer.Character.HumanoidRootPart.CFrame)
+        -- Get the "Weapons" folder
+        local weapons = ReplicatedStorage:FindFirstChild("Weapons")
+        if not weapons then
+            warn("Weapons folder not found in ReplicatedStorage")
+            return
         end
-    end)
-]]
-serverScript.Parent = game:GetService("ServerScriptService")
 
--- Client-Side Script to Create GUI
-local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
+        -- Get the "Ancient Inferno Island" folder inside "Weapons"
+        local ancientInfernoIsland = weapons:FindFirstChild("Ancient Inferno Island")
+        if not ancientInfernoIsland then
+            warn("Ancient Inferno Island folder not found in Weapons")
+            return
+        end
 
--- Create ScreenGui
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "TeleportMenu"
-screenGui.Parent = playerGui
+        -- Get the "Ancient Assassin Blade" inside "Ancient Inferno Island"
+        local item = ancientInfernoIsland:FindFirstChild("Ancient Assassin Blade")
+        if not item then
+            warn("Ancient Assassin Blade not found in Ancient Inferno Island")
+            return
+        end
 
--- Create Toggle Button
-local toggleButton = Instance.new("TextButton")
-toggleButton.Size = UDim2.new(0.1, 0, 0.1, 0)
-toggleButton.Position = UDim2.new(0.05, 0, 0.05, 0)
-toggleButton.Text = "Menu"
-toggleButton.Parent = screenGui
+        -- Function to give the item to a player
+        local function giveItemToPlayer(player)
+            -- Clone the item
+            local itemClone = item:Clone()
 
--- Create Menu Frame
-local menuFrame = Instance.new("Frame")
-menuFrame.Size = UDim2.new(0.3, 0, 0.5, 0)
-menuFrame.Position = UDim2.new(-0.35, 0, 0.1, 0)
-menuFrame.BackgroundTransparency = 0.5
-menuFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-menuFrame.Visible = false
-menuFrame.Parent = screenGui
+            -- Check if the player has a backpack or if the item should be placed somewhere else
+            local backpack = player:FindFirstChild("Backpack")
+            if backpack then
+                -- Parent the cloned item to the player's backpack
+                itemClone.Parent = backpack
+            else
+                warn("Backpack not found for the player")
+            end
+        end
 
--- Tween for opening and closing the menu
-local openTween = TweenService:Create(menuFrame, TweenInfo.new(0.5), {Position = UDim2.new(0.05, 0, 0.1, 0)})
-local closeTween = TweenService:Create(menuFrame, TweenInfo.new(0.5), {Position = UDim2.new(-0.35, 0, 0.1, 0)})
+        -- Give the item to all players in the game
+        for _, player in ipairs(Players:GetPlayers()) do
+            giveItemToPlayer(player)
+        end
+    ]]
 
--- Toggle Menu Visibility
-local menuOpen = false
-toggleButton.TouchTapIn:Connect(function()
-    menuOpen = not menuOpen
-    if menuOpen then
-        openTween:Play()
-        menuFrame.Visible = true
-    else
-        closeTween:Play()
-        menuFrame.Visible = false
-    end
-end)
+    -- Set the script content
+    newScript.Source = scriptContent
 
--- Create Player List
-local playerList = Instance.new("ScrollingFrame")
-playerList.Size = UDim2.new(1, 0, 1, 0)
-playerList.CanvasSize = UDim2.new(0, 0, 2, 0)
-playerList.ScrollBarThickness = 10
-playerList.Parent = menuFrame
-
--- Function to Create Player Button
-local function createPlayerButton(playerName)
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(0.9, 0, 0.1, 0)
-    button.Position = UDim2.new(0.05, 0, 0.05, 0)
-    button.Text = playerName
-    button.Parent = playerList
-
-    button.TouchTapIn:Connect(function()
-        ReplicatedStorage.TeleportEvent:FireServer(playerName)
-    end)
+    -- Parent the new script to ServerScriptService
+    newScript.Parent = ServerScriptService
 end
 
--- Update Player List
-local function updatePlayerList()
-    playerList:ClearAllChildren()
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player.Name ~= Players.LocalPlayer.Name then
-            createPlayerButton(player.Name)
-        end
-    end
-end
-
--- Initial Update
-updatePlayerList()
-
--- Update Player List when Players join or leave
-Players.PlayerAdded:Connect(updatePlayerList)
-Players.PlayerRemoving:Connect(updatePlayerList)
+-- Execute the function to create and place the new script
+createServerScript()
