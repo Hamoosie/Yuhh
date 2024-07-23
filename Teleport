@@ -102,8 +102,8 @@ local function knockBehindPlayer()
             local targetCharacter = targetPlayer.Character
 
             if character and targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
-                -- Teleport closer and ensure the player is facing the target
-                local targetPosition = targetCharacter.HumanoidRootPart.Position + targetCharacter.HumanoidRootPart.CFrame.LookVector * -0.5 -- Adjusted closer
+                -- Continuously adjust position behind the target player
+                local targetPosition = targetCharacter.HumanoidRootPart.Position + targetCharacter.HumanoidRootPart.CFrame.LookVector * -2 -- Adjusted to be more precise
                 local characterPosition = character.HumanoidRootPart.Position
                 local targetDirection = (targetCharacter.HumanoidRootPart.Position - characterPosition).unit
                 character:SetPrimaryPartCFrame(CFrame.new(targetPosition, targetCharacter.HumanoidRootPart.Position))
