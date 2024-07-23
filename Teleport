@@ -86,7 +86,7 @@ playerList.Parent = menuFrame
 local function createPlayerButton(playerName)
     local button = Instance.new("TextButton")
     button.Size = UDim2.new(0.9, 0, 0.1, 0)
-    button.Position = UDim2.new(0.05, 0, 0.05, 0)
+    button.Position = UDim2.new(0.05, 0, 0)
     button.Text = playerName
     button.Parent = playerList
 
@@ -103,6 +103,7 @@ local function updatePlayerList()
             createPlayerButton(player.Name)
         end
     end
+    playerList.CanvasSize = UDim2.new(0, 0, #Players:GetPlayers() * 0.1, 0)
 end
 
 -- Initial Update
