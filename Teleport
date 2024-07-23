@@ -3,7 +3,7 @@ local player = game.Players.LocalPlayer
 local screenGui = Instance.new("ScreenGui", player.PlayerGui)
 local menuFrame = Instance.new("Frame", screenGui)
 menuFrame.Size = UDim2.new(0, 200, 0, 300)
-menuFrame.Position = UDim2.new(0, 0, 0.2, 0)  -- Moved down by 20% of the screen height
+menuFrame.Position = UDim2.new(0, 0, 0.4, 0)  -- Moved down further to 40% of the screen height
 menuFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 
 local playerNameInput = Instance.new("TextBox", menuFrame)
