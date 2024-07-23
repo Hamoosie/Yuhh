@@ -2,6 +2,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+local ServerScriptService = game:GetService("ServerScriptService")
 
 -- Create RemoteEvent for teleporting
 local teleportEvent = Instance.new("RemoteEvent")
@@ -24,7 +25,7 @@ serverScript.Source = [[
         end
     end)
 ]]
-serverScript.Parent = game:GetService("ServerScriptService")
+serverScript.Parent = ServerScriptService
 
 -- Client-Side Script to Create GUI
 local player = Players.LocalPlayer
@@ -57,7 +58,7 @@ local closeTween = TweenService:Create(menuFrame, TweenInfo.new(0.5), {Position 
 
 -- Toggle Menu Visibility
 local menuOpen = false
-toggleButton.TouchTapIn:Connect(function()
+toggleButton.MouseButton1Click:Connect(function()
     menuOpen = not menuOpen
     if menuOpen then
         openTween:Play()
@@ -83,7 +84,7 @@ local function createPlayerButton(playerName)
     button.Text = playerName
     button.Parent = playerList
 
-    button.TouchTapIn:Connect(function()
+    button.MouseButton1Click:Connect(function()
         ReplicatedStorage.TeleportEvent:FireServer(playerName)
     end)
 end
