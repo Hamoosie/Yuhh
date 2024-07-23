@@ -51,7 +51,7 @@ local function teleportToPlayer(partialName)
 
         if character and targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
             -- Teleport close to the target
-            character:MoveTo(targetCharacter.HumanoidRootPart.Position - (targetCharacter.HumanoidRootPart.CFrame.LookVector * 2))
+            character:SetPrimaryPartCFrame(targetCharacter.PrimaryPart.CFrame * CFrame.new(0, 0, -2))
             teleporting = true
         else
             print("Teleport failed: Target player's HumanoidRootPart not found.")
@@ -63,7 +63,7 @@ end
 
 local function activateCombatTool()
     local backpack = game.Players.LocalPlayer.Backpack
-    local tool = backpack:FindFirstChild("combat")
+    local tool = backpack:FindFirstChild("Combat")
     if tool then
         -- Equip the tool
         tool.Parent = game.Players.LocalPlayer.Character
@@ -80,22 +80,28 @@ local function activateCombatTool()
 end
 
 local function knockBehindPlayer()
-    while knockActive and targetPlayer do
-        local character = game.Players.LocalPlayer.Character
-        local targetCharacter = targetPlayer.Character
+    if targetPlayer then
+        activateCombatTool()
+        knockActive = true
+        while knockActive and targetPlayer do
+            local character = game.Players.LocalPlayer.Character
+            local targetCharacter = targetPlayer.Character
 
-        if character and targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
-            local targetPosition = targetCharacter.HumanoidRootPart.Position - (targetCharacter.HumanoidRootPart.CFrame.LookVector * 2)
-            character:MoveTo(targetPosition)
-            wait(0.1)
-            local args = {
-                [1] = "ChargeButton"
-            }
-            game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
-        else
-            print("Failed to teleport behind player.")
-            break
+            if character and targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
+                local targetPosition = targetCharacter.HumanoidRootPart.Position - (targetCharacter.HumanoidRootPart.CFrame.LookVector * 2)
+                character:SetPrimaryPartCFrame(CFrame.new(targetPosition))
+                wait(0.1)
+                local args = {
+                    [1] = "ChargeButton"
+                }
+                game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
+            else
+                print("Failed to teleport behind player.")
+                break
+            end
         end
+    else
+        print("No target player to knock.")
     end
 end
 
@@ -112,7 +118,6 @@ KnockButton.MouseButton1Click:Connect(function()
     if not knockActive then
         if targetPlayer then
             activateCombatTool()
-            knockActive = true
             knockBehindPlayer()
         else
             print("No target player to knock.")
