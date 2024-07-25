@@ -6,7 +6,8 @@ local MinimizeButton = Instance.new("TextButton")
 local MaximizeButton = Instance.new("TextButton")
 local ExecuteButton = Instance.new("TextButton")
 local ClearButton = Instance.new("TextButton")
-local Tabs = {}  -- Initialize Tabs as an empty table or populate with your UI elements
+local Tabs = {}
+local TabSwitcher = Instance.new("Frame")
 
 -- Setup ScreenGui
 ScreenGui.Parent = game.Players.LocalPlayer.PlayerGui
@@ -15,7 +16,7 @@ ScreenGui.Parent = game.Players.LocalPlayer.PlayerGui
 Frame.Parent = ScreenGui
 Frame.Size = UDim2.new(0.4, 0, 0.4, 0)
 Frame.Position = UDim2.new(0.3, 0, 0.3, 0)
-Frame.BackgroundTransparency = 1  -- Hide the default background of Frame
+Frame.BackgroundTransparency = 1
 
 -- Setup Background Image
 Background.Parent = Frame
@@ -30,6 +31,7 @@ MinimizeButton.Position = UDim2.new(0.9, 0, 0, 0)
 MinimizeButton.Text = "-"
 MinimizeButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
 MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeButton.BorderSizePixel = 0
 
 -- Setup MaximizeButton
 MaximizeButton.Parent = Frame
@@ -38,6 +40,7 @@ MaximizeButton.Position = UDim2.new(0.9, 0, 0, 0)
 MaximizeButton.Text = "+"
 MaximizeButton.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
 MaximizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+MaximizeButton.BorderSizePixel = 0
 MaximizeButton.Visible = false
 
 -- Setup ExecuteButton
@@ -47,6 +50,7 @@ ExecuteButton.Position = UDim2.new(0.4, 0, 0.8, 0)
 ExecuteButton.Text = "Execute"
 ExecuteButton.BackgroundColor3 = Color3.fromRGB(0, 0, 200)
 ExecuteButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ExecuteButton.BorderSizePixel = 0
 
 -- Setup ClearButton
 ClearButton.Parent = Frame
@@ -55,19 +59,57 @@ ClearButton.Position = UDim2.new(0.2, 0, 0.8, 0)
 ClearButton.Text = "Clear"
 ClearButton.BackgroundColor3 = Color3.fromRGB(200, 200, 0)
 ClearButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ClearButton.BorderSizePixel = 0
 
--- Add Tabs to the Tabs table (Populate this based on your UI setup)
--- Example:
--- local tab1 = Instance.new("Frame")
--- tab1.Parent = Frame
--- tab1.Size = UDim2.new(0.8, 0, 0.6, 0)
--- tab1.Position = UDim2.new(0.1, 0, 0.1, 0)
--- tab1.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
--- local textBox1 = Instance.new("TextBox")
--- textBox1.Parent = tab1
--- textBox1.Size = UDim2.new(1, 0, 1, 0)
--- textBox1.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
--- table.insert(Tabs, {Tab = tab1, TextBox = textBox1})
+-- Setup TabSwitcher
+TabSwitcher.Parent = Frame
+TabSwitcher.Size = UDim2.new(1, 0, 0.1, 0)
+TabSwitcher.Position = UDim2.new(0, 0, 0, 0)
+TabSwitcher.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+
+-- Function to create a new tab
+local function createTab(name)
+    local tab = Instance.new("Frame")
+    tab.Parent = Frame
+    tab.Size = UDim2.new(1, 0, 0.3, 0)
+    tab.Position = UDim2.new(0, 0, 0.1, 0)
+    tab.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+    tab.Visible = false
+    
+    local tabButton = Instance.new("TextButton")
+    tabButton.Parent = TabSwitcher
+    tabButton.Size = UDim2.new(1 / #Tabs, 0, 1, 0)
+    tabButton.Position = UDim2.new((#Tabs - 1) / #Tabs, 0, 0, 0)
+    tabButton.Text = name
+    tabButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    tabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    tabButton.BorderSizePixel = 0
+    
+    local textBox = Instance.new("TextBox")
+    textBox.Parent = tab
+    textBox.Size = UDim2.new(1, 0, 1, 0)
+    textBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    
+    table.insert(Tabs, {Tab = tab, TextBox = textBox, Button = tabButton})
+end
+
+-- Create example tabs
+createTab("Tab 1")
+createTab("Tab 2")
+
+-- Function to show a tab based on the button clicked
+local function showTab(index)
+    for i, tab in ipairs(Tabs) do
+        tab.Tab.Visible = (i == index)
+    end
+end
+
+-- Connect tab buttons to show the respective tabs
+for i, tab in ipairs(Tabs) do
+    tab.Button.MouseButton1Click:Connect(function()
+        showTab(i)
+    end)
+end
 
 local isMinimized = false
 
