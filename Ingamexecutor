@@ -23,7 +23,6 @@ Background.Parent = Frame
 Background.Size = UDim2.new(1, 0, 1, 0)
 Background.BackgroundTransparency = 1
 Background.Image = "rbxassetid://18648068501"  -- Your asset ID for the background
-Background.ImageTransparency = 0.5  -- Adjust if needed
 
 -- Setup MinimizeButton
 MinimizeButton.Parent = Frame
@@ -156,3 +155,6 @@ ClearButton.MouseButton1Click:Connect(function()
     print("Clear button clicked!")
     -- Add your clear code here
 end)
+
+-- Initialize visibility of tabs
+showTab(1)  -- Show the first tab by default
