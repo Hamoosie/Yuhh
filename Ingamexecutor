@@ -6,6 +6,8 @@ local ScreenGui = Instance.new("ScreenGui")
 local Background = Instance.new("ImageLabel")
 local Frame = Instance.new("Frame")
 local Title = Instance.new("TextLabel")
+local MinimizeButton = Instance.new("TextButton")
+local MaximizeButton = Instance.new("TextButton")
 local TextBox = Instance.new("TextBox")
 local ExecuteButton = Instance.new("TextButton")
 local ClearButton = Instance.new("TextButton")
@@ -41,6 +43,29 @@ Title.Text = "Hamsas Executor"
 Title.TextColor3 = Color3.fromRGB(0, 255, 0)
 Title.TextScaled = true
 Title.TextWrapped = true
+
+MinimizeButton.Name = "MinimizeButton"
+MinimizeButton.Parent = Frame
+MinimizeButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeButton.Position = UDim2.new(0.9, 0, 0, 0)
+MinimizeButton.Size = UDim2.new(0.1, 0, 0.2, 0)
+MinimizeButton.Font = Enum.Font.SourceSansBold
+MinimizeButton.Text = "-"
+MinimizeButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+MinimizeButton.TextScaled = true
+MinimizeButton.TextWrapped = true
+
+MaximizeButton.Name = "MaximizeButton"
+MaximizeButton.Parent = Frame
+MaximizeButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+MaximizeButton.Position = UDim2.new(0.8, 0, 0, 0)
+MaximizeButton.Size = UDim2.new(0.1, 0, 0.2, 0)
+MaximizeButton.Font = Enum.Font.SourceSansBold
+MaximizeButton.Text = "□"
+MaximizeButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+MaximizeButton.TextScaled = true
+MaximizeButton.TextWrapped = true
+MaximizeButton.Visible = false
 
 TextBox.Name = "ScriptInput"
 TextBox.Parent = Frame
@@ -91,4 +116,35 @@ end)
 -- Function to clear the text box
 ClearButton.MouseButton1Click:Connect(function()
     TextBox.Text = ""
+end)
+
+-- Minimize and maximize functionality
+local isMinimized = false
+
+local function minimize()
+    isMinimized = true
+    Frame:TweenSize(UDim2.new(0.4, 0, 0.2, 0), "Out", "Quad", 0.5, true)
+    TextBox.Visible = false
+    ExecuteButton.Visible = false
+    ClearButton.Visible = false
+    MinimizeButton.Visible = false
+    MaximizeButton.Visible = true
+end
+
+local function maximize()
+    isMinimized = false
+    Frame:TweenSize(UDim2.new(0.4, 0, 0.4, 0), "Out", "Quad", 0.5, true)
+    TextBox.Visible = true
+    ExecuteButton.Visible = true
+    ClearButton.Visible = true
+    MinimizeButton.Visible = true
+    MaximizeButton.Visible = false
+end
+
+MinimizeButton.MouseButton1Click:Connect(function()
+    minimize()
+end)
+
+MaximizeButton.MouseButton1Click:Connect(function()
+    maximize()
 end)
