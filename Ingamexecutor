@@ -1,242 +1,107 @@
--- Define the background image and the UI for the executor
-local backgroundImageUrl = "rbxassetid://18648068501"
-
--- Create the UI elements
+-- Initialize variables
 local ScreenGui = Instance.new("ScreenGui")
-local Background = Instance.new("ImageLabel")
 local Frame = Instance.new("Frame")
-local Title = Instance.new("TextLabel")
+local Background = Instance.new("ImageLabel")
 local MinimizeButton = Instance.new("TextButton")
 local MaximizeButton = Instance.new("TextButton")
-local TabsHolder = Instance.new("Frame")
-local AddTabButton = Instance.new("TextButton")
 local ExecuteButton = Instance.new("TextButton")
 local ClearButton = Instance.new("TextButton")
-local Tabs = {}
+local Tabs = {}  -- Initialize Tabs as an empty table or populate with your UI elements
 
-ScreenGui.Name = "HamsasExecutor"
-ScreenGui.Parent = game.CoreGui
+-- Setup ScreenGui
+ScreenGui.Parent = game.Players.LocalPlayer.PlayerGui
 
-Background.Name = "Background"
-Background.Parent = ScreenGui
-Background.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-Background.BackgroundTransparency = 1.000
-Background.Size = UDim2.new(1, 0, 1, 0)
-Background.Image = backgroundImageUrl
-
-Frame.Name = "Frame"
+-- Setup Frame
 Frame.Parent = ScreenGui
-Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-Frame.BackgroundTransparency = 0.5
-Frame.Position = UDim2.new(0.3, 0, 0.3, 0)
 Frame.Size = UDim2.new(0.4, 0, 0.4, 0)
-Frame.BorderSizePixel = 0
-Frame.Draggable = true
-Frame.Active = true
-Frame.Selectable = true
+Frame.Position = UDim2.new(0.3, 0, 0.3, 0)
+Frame.BackgroundTransparency = 1  -- Hide the default background of Frame
 
-Title.Name = "Title"
-Title.Parent = Frame
-Title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-Title.BackgroundTransparency = 1.000
-Title.Size = UDim2.new(1, 0, 0.2, 0)
-Title.Font = Enum.Font.SourceSansBold
-Title.Text = "Hamsas Executor"
-Title.TextColor3 = Color3.fromRGB(0, 255, 0)
-Title.TextScaled = true
-Title.TextWrapped = true
+-- Setup Background Image
+Background.Parent = Frame
+Background.Size = UDim2.new(1, 0, 1, 0)
+Background.BackgroundTransparency = 1
+Background.Image = "rbxassetid://18648068501"  -- Your asset ID for the background
 
-MinimizeButton.Name = "MinimizeButton"
+-- Setup MinimizeButton
 MinimizeButton.Parent = Frame
-MinimizeButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeButton.Size = UDim2.new(0.1, 0, 0.05, 0)
 MinimizeButton.Position = UDim2.new(0.9, 0, 0, 0)
-MinimizeButton.Size = UDim2.new(0.05, 0, 0.2, 0)
-MinimizeButton.Font = Enum.Font.SourceSansBold
 MinimizeButton.Text = "-"
-MinimizeButton.TextColor3 = Color3.fromRGB(0, 0, 0)
-MinimizeButton.TextScaled = true
-MinimizeButton.TextWrapped = true
+MinimizeButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 
-MaximizeButton.Name = "MaximizeButton"
+-- Setup MaximizeButton
 MaximizeButton.Parent = Frame
-MaximizeButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-MaximizeButton.Position = UDim2.new(0.85, 0, 0, 0)
-MaximizeButton.Size = UDim2.new(0.05, 0, 0.2, 0)
-MaximizeButton.Font = Enum.Font.SourceSansBold
-MaximizeButton.Text = "□"
-MaximizeButton.TextColor3 = Color3.fromRGB(0, 0, 0)
-MaximizeButton.TextScaled = true
-MaximizeButton.TextWrapped = true
+MaximizeButton.Size = UDim2.new(0.1, 0, 0.05, 0)
+MaximizeButton.Position = UDim2.new(0.9, 0, 0, 0)
+MaximizeButton.Text = "+"
+MaximizeButton.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+MaximizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 MaximizeButton.Visible = false
 
-TabsHolder.Name = "TabsHolder"
-TabsHolder.Parent = Frame
-TabsHolder.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-TabsHolder.BackgroundTransparency = 1.000
-TabsHolder.Size = UDim2.new(1, 0, 0.1, 0)
-
-AddTabButton.Name = "AddTabButton"
-AddTabButton.Parent = TabsHolder
-AddTabButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-AddTabButton.Size = UDim2.new(0.1, 0, 1, 0)
-AddTabButton.Font = Enum.Font.SourceSansBold
-AddTabButton.Text = "+"
-AddTabButton.TextColor3 = Color3.fromRGB(0, 0, 0)
-AddTabButton.TextScaled = true
-AddTabButton.TextWrapped = true
-
-ExecuteButton.Name = "ExecuteButton"
+-- Setup ExecuteButton
 ExecuteButton.Parent = Frame
-ExecuteButton.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
-ExecuteButton.Position = UDim2.new(0.05, 0, 0.85, 0)
-ExecuteButton.Size = UDim2.new(0.4, 0, 0.1, 0)
-ExecuteButton.Font = Enum.Font.SourceSansBold
+ExecuteButton.Size = UDim2.new(0.2, 0, 0.1, 0)
+ExecuteButton.Position = UDim2.new(0.4, 0, 0.8, 0)
 ExecuteButton.Text = "Execute"
+ExecuteButton.BackgroundColor3 = Color3.fromRGB(0, 0, 200)
 ExecuteButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ExecuteButton.TextScaled = true
-ExecuteButton.TextWrapped = true
 
-ClearButton.Name = "ClearButton"
+-- Setup ClearButton
 ClearButton.Parent = Frame
-ClearButton.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
-ClearButton.Position = UDim2.new(0.55, 0, 0.85, 0)
-ClearButton.Size = UDim2.new(0.4, 0, 0.1, 0)
-ClearButton.Font = Enum.Font.SourceSansBold
+ClearButton.Size = UDim2.new(0.2, 0, 0.1, 0)
+ClearButton.Position = UDim2.new(0.2, 0, 0.8, 0)
 ClearButton.Text = "Clear"
+ClearButton.BackgroundColor3 = Color3.fromRGB(200, 200, 0)
 ClearButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ClearButton.TextScaled = true
-ClearButton.TextWrapped = true
 
--- Function to create a new tab
-local function createTab()
-    local Tab = Instance.new("Frame")
-    local TextBox = Instance.new("TextBox")
-    local CloseButton = Instance.new("TextButton")
-    
-    Tab.Name = "Tab"
-    Tab.Parent = TabsHolder
-    Tab.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    Tab.Size = UDim2.new(0.15, 0, 1, 0)
-    
-    TextBox.Name = "ScriptInput"
-    TextBox.Parent = Frame
-    TextBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    TextBox.BackgroundTransparency = 0.8
-    TextBox.Position = UDim2.new(0.05, 0, 0.3, 0)
-    TextBox.Size = UDim2.new(0.9, 0, 0.5, 0)
-    TextBox.Font = Enum.Font.Code
-    TextBox.Text = "Enter your script here"
-    TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TextBox.TextScaled = true
-    TextBox.TextWrapped = true
-    TextBox.ClearTextOnFocus = true
-    TextBox.Visible = false
-    
-    CloseButton.Name = "CloseButton"
-    CloseButton.Parent = Tab
-    CloseButton.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
-    CloseButton.Size = UDim2.new(0.2, 0, 1, 0)
-    CloseButton.Position = UDim2.new(0.8, 0, 0, 0)
-    CloseButton.Font = Enum.Font.SourceSansBold
-    CloseButton.Text = "-"
-    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    CloseButton.TextScaled = true
-    CloseButton.TextWrapped = true
-    
-    table.insert(Tabs, {Tab = Tab, TextBox = TextBox})
-    
-    -- Event to switch tabs
-    Tab.MouseButton1Click:Connect(function()
-        for _, tab in ipairs(Tabs) do
-            tab.TextBox.Visible = false
-            tab.Tab.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-        end
-        TextBox.Visible = true
-        Tab.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-    end)
-    
-    -- Event to close the tab
-    CloseButton.MouseButton1Click:Connect(function()
-        for i, tab in ipairs(Tabs) do
-            if tab.Tab == Tab then
-                tab.TextBox:Destroy()
-                tab.Tab:Destroy()
-                table.remove(Tabs, i)
-                break
-            end
-        end
-    end)
-    
-    -- Automatically select the new tab
-    Tab:MouseButton1Click()
-end
+-- Add Tabs to the Tabs table (Populate this based on your UI setup)
+-- Example:
+-- local tab1 = Instance.new("Frame")
+-- tab1.Parent = Frame
+-- tab1.Size = UDim2.new(0.8, 0, 0.6, 0)
+-- tab1.Position = UDim2.new(0.1, 0, 0.1, 0)
+-- tab1.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
+-- local textBox1 = Instance.new("TextBox")
+-- textBox1.Parent = tab1
+-- textBox1.Size = UDim2.new(1, 0, 1, 0)
+-- textBox1.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+-- table.insert(Tabs, {Tab = tab1, TextBox = textBox1})
 
--- Create the initial tab
-createTab()
-
--- Event to add new tabs
-AddTabButton.MouseButton1Click:Connect(createTab)
-
--- Function to execute the script from the active tab
-ExecuteButton.MouseButton1Click:Connect(function()
-    for _, tab in ipairs(Tabs) do
-        if tab.TextBox.Visible then
-            local scriptSource = tab.TextBox.Text
-            local success, err = pcall(function()
-                loadstring(scriptSource)()
-            end)
-            if not success then
-                warn("Error executing script: " .. err)
-            end
-            break
-        end
-    end
-end)
-
--- Function to clear the text box of the active tab
-ClearButton.MouseButton1Click:Connect(function()
-    for _, tab in ipairs(Tabs) do
-        if tab.TextBox.Visible then
-            tab.TextBox.Text = ""
-            break
-        end
-    end
-end)
-
--- Minimize and maximize functionality
 local isMinimized = false
 
 local function minimize()
     isMinimized = true
-    Frame:TweenSize(UDim2.new(0.4, 0, 0.2, 0), “Out”, “Quad”, 0.5, true)
-for _, tab in ipairs(Tabs) do
-tab.TextBox.Visible = false
-end
-ExecuteButton.Visible = false
-ClearButton.Visible = false
-MinimizeButton.Visible = false
-MaximizeButton.Visible = true
+    Frame:TweenSize(UDim2.new(0.2, 0, 0.2, 0), "Out", "Quad", 0.5, true)
+    for _, tab in ipairs(Tabs) do
+        tab.TextBox.Visible = false
+    end
+    ExecuteButton.Visible = false
+    ClearButton.Visible = false
+    MinimizeButton.Visible = false
+    MaximizeButton.Visible = true
 end
 
 local function maximize()
-isMinimized = false
-Frame:TweenSize(UDim2.new(0.4, 0, 0.4, 0), “Out”, “Quad”, 0.5, true)
-for _, tab in ipairs(Tabs) do
-if tab.Tab.BackgroundColor3 == Color3.fromRGB(70, 70, 70) then
-tab.TextBox.Visible = true
-break
-end
-end
-ExecuteButton.Visible = true
-ClearButton.Visible = true
-MinimizeButton.Visible = true
-MaximizeButton.Visible = false
+    isMinimized = false
+    Frame:TweenSize(UDim2.new(0.4, 0, 0.4, 0), "Out", "Quad", 0.5, true)
+    for _, tab in ipairs(Tabs) do
+        if tab.Tab.BackgroundColor3 == Color3.fromRGB(70, 70, 70) then
+            tab.TextBox.Visible = true
+            break
+        end
+    end
+    ExecuteButton.Visible = true
+    ClearButton.Visible = true
+    MinimizeButton.Visible = true
+    MaximizeButton.Visible = false
 end
 
 MinimizeButton.MouseButton1Click:Connect(function()
-minimize()
+    minimize()
 end)
 
 MaximizeButton.MouseButton1Click:Connect(function()
-maximize()
+    maximize()
 end)
