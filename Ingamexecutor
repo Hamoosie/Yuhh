@@ -6,8 +6,8 @@ local MinimizeButton = Instance.new("TextButton")
 local MaximizeButton = Instance.new("TextButton")
 local ExecuteButton = Instance.new("TextButton")
 local ClearButton = Instance.new("TextButton")
-local Tabs = {}
 local TabSwitcher = Instance.new("Frame")
+local Tabs = {}
 
 -- Setup ScreenGui
 ScreenGui.Parent = game.Players.LocalPlayer.PlayerGui
@@ -23,6 +23,7 @@ Background.Parent = Frame
 Background.Size = UDim2.new(1, 0, 1, 0)
 Background.BackgroundTransparency = 1
 Background.Image = "rbxassetid://18648068501"  -- Your asset ID for the background
+Background.ImageTransparency = 0.5  -- Adjust if needed
 
 -- Setup MinimizeButton
 MinimizeButton.Parent = Frame
@@ -129,10 +130,7 @@ local function maximize()
     isMinimized = false
     Frame:TweenSize(UDim2.new(0.4, 0, 0.4, 0), "Out", "Quad", 0.5, true)
     for _, tab in ipairs(Tabs) do
-        if tab.Tab.BackgroundColor3 == Color3.fromRGB(70, 70, 70) then
-            tab.TextBox.Visible = true
-            break
-        end
+        tab.TextBox.Visible = true
     end
     ExecuteButton.Visible = true
     ClearButton.Visible = true
@@ -146,4 +144,15 @@ end)
 
 MaximizeButton.MouseButton1Click:Connect(function()
     maximize()
+end)
+
+-- Add functionality for Execute and Clear buttons
+ExecuteButton.MouseButton1Click:Connect(function()
+    print("Execute button clicked!")
+    -- Add your execution code here
+end)
+
+ClearButton.MouseButton1Click:Connect(function()
+    print("Clear button clicked!")
+    -- Add your clear code here
 end)
