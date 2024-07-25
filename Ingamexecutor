@@ -8,9 +8,11 @@ local Frame = Instance.new("Frame")
 local Title = Instance.new("TextLabel")
 local MinimizeButton = Instance.new("TextButton")
 local MaximizeButton = Instance.new("TextButton")
-local TextBox = Instance.new("TextBox")
+local TabsHolder = Instance.new("Frame")
+local AddTabButton = Instance.new("TextButton")
 local ExecuteButton = Instance.new("TextButton")
 local ClearButton = Instance.new("TextButton")
+local Tabs = {}
 
 ScreenGui.Name = "HamsasExecutor"
 ScreenGui.Parent = game.CoreGui
@@ -48,7 +50,7 @@ MinimizeButton.Name = "MinimizeButton"
 MinimizeButton.Parent = Frame
 MinimizeButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 MinimizeButton.Position = UDim2.new(0.9, 0, 0, 0)
-MinimizeButton.Size = UDim2.new(0.1, 0, 0.2, 0)
+MinimizeButton.Size = UDim2.new(0.05, 0, 0.2, 0)
 MinimizeButton.Font = Enum.Font.SourceSansBold
 MinimizeButton.Text = "-"
 MinimizeButton.TextColor3 = Color3.fromRGB(0, 0, 0)
@@ -58,8 +60,8 @@ MinimizeButton.TextWrapped = true
 MaximizeButton.Name = "MaximizeButton"
 MaximizeButton.Parent = Frame
 MaximizeButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-MaximizeButton.Position = UDim2.new(0.8, 0, 0, 0)
-MaximizeButton.Size = UDim2.new(0.1, 0, 0.2, 0)
+MaximizeButton.Position = UDim2.new(0.85, 0, 0, 0)
+MaximizeButton.Size = UDim2.new(0.05, 0, 0.2, 0)
 MaximizeButton.Font = Enum.Font.SourceSansBold
 MaximizeButton.Text = "□"
 MaximizeButton.TextColor3 = Color3.fromRGB(0, 0, 0)
@@ -67,18 +69,21 @@ MaximizeButton.TextScaled = true
 MaximizeButton.TextWrapped = true
 MaximizeButton.Visible = false
 
-TextBox.Name = "ScriptInput"
-TextBox.Parent = Frame
-TextBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-TextBox.BackgroundTransparency = 0.8
-TextBox.Position = UDim2.new(0.05, 0, 0.3, 0)
-TextBox.Size = UDim2.new(0.9, 0, 0.5, 0)
-TextBox.Font = Enum.Font.Code
-TextBox.Text = "Enter your script here"
-TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-TextBox.TextScaled = true
-TextBox.TextWrapped = true
-TextBox.ClearTextOnFocus = true
+TabsHolder.Name = "TabsHolder"
+TabsHolder.Parent = Frame
+TabsHolder.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+TabsHolder.BackgroundTransparency = 1.000
+TabsHolder.Size = UDim2.new(1, 0, 0.1, 0)
+
+AddTabButton.Name = "AddTabButton"
+AddTabButton.Parent = TabsHolder
+AddTabButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+AddTabButton.Size = UDim2.new(0.1, 0, 1, 0)
+AddTabButton.Font = Enum.Font.SourceSansBold
+AddTabButton.Text = "+"
+AddTabButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+AddTabButton.TextScaled = true
+AddTabButton.TextWrapped = true
 
 ExecuteButton.Name = "ExecuteButton"
 ExecuteButton.Parent = Frame
@@ -102,20 +107,100 @@ ClearButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 ClearButton.TextScaled = true
 ClearButton.TextWrapped = true
 
--- Function to execute the script from the input box
-ExecuteButton.MouseButton1Click:Connect(function()
-    local scriptSource = TextBox.Text
-    local success, err = pcall(function()
-        loadstring(scriptSource)()
+-- Function to create a new tab
+local function createTab()
+    local Tab = Instance.new("Frame")
+    local TextBox = Instance.new("TextBox")
+    local CloseButton = Instance.new("TextButton")
+    
+    Tab.Name = "Tab"
+    Tab.Parent = TabsHolder
+    Tab.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    Tab.Size = UDim2.new(0.15, 0, 1, 0)
+    
+    TextBox.Name = "ScriptInput"
+    TextBox.Parent = Frame
+    TextBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    TextBox.BackgroundTransparency = 0.8
+    TextBox.Position = UDim2.new(0.05, 0, 0.3, 0)
+    TextBox.Size = UDim2.new(0.9, 0, 0.5, 0)
+    TextBox.Font = Enum.Font.Code
+    TextBox.Text = "Enter your script here"
+    TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TextBox.TextScaled = true
+    TextBox.TextWrapped = true
+    TextBox.ClearTextOnFocus = true
+    TextBox.Visible = false
+    
+    CloseButton.Name = "CloseButton"
+    CloseButton.Parent = Tab
+    CloseButton.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
+    CloseButton.Size = UDim2.new(0.2, 0, 1, 0)
+    CloseButton.Position = UDim2.new(0.8, 0, 0, 0)
+    CloseButton.Font = Enum.Font.SourceSansBold
+    CloseButton.Text = "-"
+    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseButton.TextScaled = true
+    CloseButton.TextWrapped = true
+    
+    table.insert(Tabs, {Tab = Tab, TextBox = TextBox})
+    
+    -- Event to switch tabs
+    Tab.MouseButton1Click:Connect(function()
+        for _, tab in ipairs(Tabs) do
+            tab.TextBox.Visible = false
+            tab.Tab.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        end
+        TextBox.Visible = true
+        Tab.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
     end)
-    if not success then
-        warn("Error executing script: " .. err)
+    
+    -- Event to close the tab
+    CloseButton.MouseButton1Click:Connect(function()
+        for i, tab in ipairs(Tabs) do
+            if tab.Tab == Tab then
+                tab.TextBox:Destroy()
+                tab.Tab:Destroy()
+                table.remove(Tabs, i)
+                break
+            end
+        end
+    end)
+    
+    -- Automatically select the new tab
+    Tab:MouseButton1Click()
+end
+
+-- Create the initial tab
+createTab()
+
+-- Event to add new tabs
+AddTabButton.MouseButton1Click:Connect(createTab)
+
+-- Function to execute the script from the active tab
+ExecuteButton.MouseButton1Click:Connect(function()
+    for _, tab in ipairs(Tabs) do
+        if tab.TextBox.Visible then
+            local scriptSource = tab.TextBox.Text
+            local success, err = pcall(function()
+                loadstring(scriptSource)()
+            end)
+            if not success then
+                warn("Error executing script: " .. err)
+            end
+            break
+        end
     end
 end)
 
--- Function to clear the text box
+-- Function to clear the text box of the active tab
 ClearButton.MouseButton1Click:Connect(function()
-    TextBox.Text = ""
+    for _, tab in ipairs(Tabs) do
+        if tab.TextBox.Visible then
+            tab.TextBox.Text = ""
+            break
+        end
+    end
 end)
 
 -- Minimize and maximize functionality
@@ -123,28 +208,35 @@ local isMinimized = false
 
 local function minimize()
     isMinimized = true
-    Frame:TweenSize(UDim2.new(0.4, 0, 0.2, 0), "Out", "Quad", 0.5, true)
-    TextBox.Visible = false
-    ExecuteButton.Visible = false
-    ClearButton.Visible = false
-    MinimizeButton.Visible = false
-    MaximizeButton.Visible = true
+    Frame:TweenSize(UDim2.new(0.4, 0, 0.2, 0), “Out”, “Quad”, 0.5, true)
+for _, tab in ipairs(Tabs) do
+tab.TextBox.Visible = false
+end
+ExecuteButton.Visible = false
+ClearButton.Visible = false
+MinimizeButton.Visible = false
+MaximizeButton.Visible = true
 end
 
 local function maximize()
-    isMinimized = false
-    Frame:TweenSize(UDim2.new(0.4, 0, 0.4, 0), "Out", "Quad", 0.5, true)
-    TextBox.Visible = true
-    ExecuteButton.Visible = true
-    ClearButton.Visible = true
-    MinimizeButton.Visible = true
-    MaximizeButton.Visible = false
+isMinimized = false
+Frame:TweenSize(UDim2.new(0.4, 0, 0.4, 0), “Out”, “Quad”, 0.5, true)
+for _, tab in ipairs(Tabs) do
+if tab.Tab.BackgroundColor3 == Color3.fromRGB(70, 70, 70) then
+tab.TextBox.Visible = true
+break
+end
+end
+ExecuteButton.Visible = true
+ClearButton.Visible = true
+MinimizeButton.Visible = true
+MaximizeButton.Visible = false
 end
 
 MinimizeButton.MouseButton1Click:Connect(function()
-    minimize()
+minimize()
 end)
 
 MaximizeButton.MouseButton1Click:Connect(function()
-    maximize()
+maximize()
 end)
