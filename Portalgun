@@ -1,5 +1,6 @@
 -- Create RemoteEvent and RemoteFunction in ReplicatedStorage
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
 local remoteEvent = Instance.new("RemoteEvent")
 remoteEvent.Name = "PortalEvent"
 remoteEvent.Parent = ReplicatedStorage
@@ -8,7 +9,7 @@ local teleportFunction = Instance.new("RemoteFunction")
 teleportFunction.Name = "TeleportFunction"
 teleportFunction.Parent = ReplicatedStorage
 
--- Server-side Script
+-- Server-side Script Logic
 local function setupServer()
     local portal1 = nil
     local portal2 = nil
@@ -58,18 +59,15 @@ local function setupServer()
     end)
 end
 
--- Run the server setup function
+-- Initialize Server-side setup
 setupServer()
 
--- Client-side Script
+-- Client-side Script Logic
 local player = game.Players.LocalPlayer
 local mouse = player:GetMouse()
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local remoteEvent = ReplicatedStorage:WaitForChild("PortalEvent")
-local teleportFunction = ReplicatedStorage:WaitForChild("TeleportFunction")
+local backpack = player:WaitForChild("Backpack")
 
 -- Create the Portal Gun
-local backpack = player:WaitForChild("Backpack")
 local portalGun = Instance.new("Tool")
 portalGun.Name = "Portal Gun"
 portalGun.RequiresHandle = false
