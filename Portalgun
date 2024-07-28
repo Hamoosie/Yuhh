@@ -56,7 +56,25 @@ dropButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
 dropButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 dropButton.Parent = frame
 
--- Function to send cash drop request to the target player
+-- Function to find the closest player name
+local function getClosestPlayerName(partialName)
+    local closestPlayer = nil
+    local smallestDifference = math.huge
+
+    for _, otherPlayer in ipairs(game.Players:GetPlayers()) do
+        local playerName = otherPlayer.Name
+        local difference = math.abs(#playerName - #partialName)
+
+        if difference < smallestDifference then
+            closestPlayer = otherPlayer
+            smallestDifference = difference
+        end
+    end
+
+    return closestPlayer
+end
+
+-- Function to send cash drop request
 local function sendCashDropRequest(targetPlayer)
     local remote = Instance.new("RemoteEvent")
     remote.Name = "CashDropRequest"
@@ -73,23 +91,6 @@ local function sendCashDropRequest(targetPlayer)
     remote:FireServer()
 end
 
--- Find the closest player name
-local function getClosestPlayerName(partialName)
-    local closestPlayer = nil
-    local shortestDistance = math.huge
-
-    for _, otherPlayer in ipairs(game.Players:GetPlayers()) do
-        local playerName = otherPlayer.Name
-        local distance = #playerName - #partialName
-        if distance < shortestDistance then
-            closestPlayer = otherPlayer
-            shortestDistance = distance
-        end
-    end
-
-    return closestPlayer
-end
-
 -- Button click event
 dropButton.MouseButton1Click:Connect(function()
     local playerName = playerNameBox.Text
@@ -99,7 +100,23 @@ dropButton.MouseButton1Click:Connect(function()
 
     if targetPlayer then
         print("Player found: " .. targetPlayer.Name)
-        sendCashDropRequest(targetPlayer)
+        
+        -- Ensure RemoteEvent exists and is properly handled on the server
+        local remote = Instance.new("RemoteEvent")
+        remote.Name = "CashDropRequest"
+        remote.Parent = game.ReplicatedStorage
+
+        -- Server-side handling to execute on the target player
+        remote.OnServerEvent:Connect(function()
+            local args = {
+                [1] = "DropMoney",
+                [2] = "10000"
+            }
+            game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
+        end)
+
+        -- Fire the remote event to execute the cash drop on the target player
+        remote:FireServer()
     else
         print("No player found with the name: " .. playerName)
     end
