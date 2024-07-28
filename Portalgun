@@ -1,0 +1,65 @@
+-- Create the Portal Gun
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local backpack = player.Backpack
+local portalGun = Instance.new("Tool")
+portalGun.Name = "Portal Gun"
+portalGun.RequiresHandle = false
+portalGun.CanBeDropped = false
+portalGun.Parent = backpack
+
+-- Create the portals
+local portal1 = nil
+local portal2 = nil
+
+-- Function to create a portal
+local function createPortal(position, color)
+    local portal = Instance.new("Part")
+    portal.Size = Vector3.new(5, 10, 1)
+    portal.Anchored = true
+    portal.CanCollide = false
+    portal.CFrame = CFrame.new(position)
+    portal.BrickColor = BrickColor.new(color)
+    portal.Parent = workspace
+    return portal
+end
+
+-- Function to teleport player
+local function teleportPlayer(portal)
+    local destinationPortal = (portal == portal1) and portal2 or portal1
+    if destinationPortal then
+        local character = player.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            character.HumanoidRootPart.CFrame = destinationPortal.CFrame + Vector3.new(0, 5, 0)
+        end
+    end
+end
+
+-- Mouse click event to shoot portals
+portalGun.Activated:Connect(function()
+    local mouse = player:GetMouse()
+    if not portal1 then
+        portal1 = createPortal(mouse.Hit.p, "Bright blue")
+    elseif not portal2 then
+        portal2 = createPortal(mouse.Hit.p, "Bright orange")
+    else
+        teleportPlayer(portal1)
+    end
+end)
+
+-- Portal touch event to teleport player
+local function onTouch(part)
+    local playerCharacter = part.Parent
+    local playerHumanoid = playerCharacter:FindFirstChild("Humanoid")
+    if playerHumanoid then
+        teleportPlayer(part)
+    end
+end
+
+-- Connect touch events to portals
+if portal1 then
+    portal1.Touched:Connect(onTouch)
+end
+if portal2 then
+    portal2.Touched:Connect(onTouch)
+end
