@@ -1,0 +1,6 @@
+game:HttpGet("https://getexploits.com/cexecution/733463075797356544")
+
+getgenv().HairDresserStation = "3" -- 1,2,3,4 are your options
+getgenv().ScriptJob = "HairDresser" -- Job Autofarm
+getgenv().ScriptKey = "3CKLJoyl6E9ahPL0l3LLz0QscNmhhp"
+loadstring(game:HttpGet("https://raw.githubusercontent.com/SurgeDid/Blockburg/main/loader.lua"))();
