@@ -8,7 +8,17 @@ portalGun.RequiresHandle = false
 portalGun.CanBeDropped = false
 portalGun.Parent = backpack
 
--- Create the portals
+-- GUI for reset button
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local resetButton = Instance.new("TextButton")
+resetButton.Size = UDim2.new(0, 100, 0, 50)
+resetButton.Position = UDim2.new(0, 10, 0, 10)
+resetButton.Text = "Reset Portals"
+resetButton.Parent = screenGui
+
+-- Variables for portals
 local portal1 = nil
 local portal2 = nil
 
@@ -20,6 +30,11 @@ local function createPortal(position, color)
     portal.CanCollide = false
     portal.CFrame = CFrame.new(position)
     portal.BrickColor = BrickColor.new(color)
+    portal.Touched:Connect(function(hit)
+        if hit.Parent:FindFirstChild("Humanoid") then
+            teleportPlayer(portal)
+        end
+    end)
     portal.Parent = workspace
     return portal
 end
@@ -47,19 +62,31 @@ portalGun.Activated:Connect(function()
     end
 end)
 
--- Portal touch event to teleport player
-local function onTouch(part)
-    local playerCharacter = part.Parent
-    local playerHumanoid = playerCharacter:FindFirstChild("Humanoid")
-    if playerHumanoid then
-        teleportPlayer(part)
-    end
+-- Reset portals function
+local function resetPortals()
+    if portal1 then portal1:Destroy() portal1 = nil end
+    if portal2 then portal2:Destroy() portal2 = nil end
 end
 
--- Connect touch events to portals
-if portal1 then
-    portal1.Touched:Connect(onTouch)
-end
-if portal2 then
-    portal2.Touched:Connect(onTouch)
-end
+-- Connect reset button
+resetButton.MouseButton1Click:Connect(resetPortals)
+
+-- Allow other players to use the portals
+game.Players.PlayerAdded:Connect(function(plr)
+    plr.CharacterAdded:Connect(function(char)
+        if portal1 then
+            portal1.Touched:Connect(function(hit)
+                if hit.Parent == char then
+                    teleportPlayer(portal1)
+                end
+            end)
+        end
+        if portal2 then
+            portal2.Touched:Connect(function(hit)
+                if hit.Parent == char then
+                    teleportPlayer(portal2)
+                end
+            end)
+        end
+    end)
+end)
