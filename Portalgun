@@ -56,6 +56,23 @@ dropButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
 dropButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 dropButton.Parent = frame
 
+-- Function to send cash drop request to the target player
+local function sendCashDropRequest(targetPlayer)
+    local remote = Instance.new("RemoteEvent")
+    remote.Name = "CashDropRequest"
+    remote.Parent = game.ReplicatedStorage
+    
+    remote.OnServerEvent:Connect(function(player)
+        local args = {
+            [1] = "DropMoney",
+            [2] = "10000"
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
+    end)
+
+    remote:FireServer()
+end
+
 -- Find the closest player name
 local function getClosestPlayerName(partialName)
     local closestPlayer = nil
@@ -81,13 +98,9 @@ dropButton.MouseButton1Click:Connect(function()
     local targetPlayer = getClosestPlayerName(playerName)
 
     if targetPlayer then
-        local args = {
-            [1] = "DropMoney",
-            [2] = "10000"
-        }
-
-        game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
+        print("Player found: " .. targetPlayer.Name)
+        sendCashDropRequest(targetPlayer)
     else
-        warn("No player found with the name: " .. playerName)
+        print("No player found with the name: " .. playerName)
     end
 end)
