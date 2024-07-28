@@ -1,111 +1,93 @@
--- Create RemoteEvent and RemoteFunction in ReplicatedStorage
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local remoteEvent = Instance.new("RemoteEvent")
-remoteEvent.Name = "PortalEvent"
-remoteEvent.Parent = ReplicatedStorage
-
-local teleportFunction = Instance.new("RemoteFunction")
-teleportFunction.Name = "TeleportFunction"
-teleportFunction.Parent = ReplicatedStorage
-
--- Server-side Script Logic
-local function setupServer()
-    local portal1 = nil
-    local portal2 = nil
-
-    -- Function to create a portal
-    local function createPortal(position, color)
-        local portal = Instance.new("Part")
-        portal.Size = Vector3.new(5, 10, 1)
-        portal.Anchored = true
-        portal.CanCollide = false
-        portal.CFrame = CFrame.new(position)
-        portal.BrickColor = BrickColor.new(color)
-        portal.Parent = workspace
-        return portal
-    end
-
-    -- Function to teleport player
-    local function teleportPlayer(player, portal)
-        local destinationPortal = (portal == portal1) and portal2 or portal1
-        if destinationPortal then
-            local character = player.Character
-            if character and character:FindFirstChild("HumanoidRootPart") then
-                character.HumanoidRootPart.CFrame = destinationPortal.CFrame + Vector3.new(0, 5, 0)
-            end
-        end
-    end
-
-    -- Handle RemoteFunction for teleportation
-    teleportFunction.OnServerInvoke = function(player, portal)
-        teleportPlayer(player, portal)
-    end
-
-    -- Handle RemoteEvent for portal creation and reset
-    remoteEvent.OnServerEvent:Connect(function(player, action, position)
-        if action == "createPortal1" then
-            if portal1 then portal1:Destroy() end
-            portal1 = createPortal(position, "Bright blue")
-        elseif action == "createPortal2" then
-            if portal2 then portal2:Destroy() end
-            portal2 = createPortal(position, "Bright orange")
-        elseif action == "resetPortals" then
-            if portal1 then portal1:Destroy() end
-            if portal2 then portal2:Destroy() end
-            portal1 = nil
-            portal2 = nil
-        end
-    end)
-end
-
--- Initialize Server-side setup
-setupServer()
-
--- Client-side Script Logic
+-- Create the GUI
 local player = game.Players.LocalPlayer
-local mouse = player:GetMouse()
-local backpack = player:WaitForChild("Backpack")
-
--- Create the Portal Gun
-local portalGun = Instance.new("Tool")
-portalGun.Name = "Portal Gun"
-portalGun.RequiresHandle = false
-portalGun.CanBeDropped = false
-portalGun.Parent = backpack
-
--- GUI for reset button
 local screenGui = Instance.new("ScreenGui")
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
-local resetButton = Instance.new("TextButton")
-resetButton.Size = UDim2.new(0, 100, 0, 50)
-resetButton.Position = UDim2.new(0, 10, 0, 10)
-resetButton.Text = "Reset Portals"
-resetButton.Parent = screenGui
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 300, 0, 200)
+frame.Position = UDim2.new(0, 50, 0, 50)
+frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+frame.BorderSizePixel = 2
+frame.Parent = screenGui
 
--- Mouse click event to shoot portals
-portalGun.Activated:Connect(function()
-    if not workspace:FindFirstChild("Portal1") then
-        remoteEvent:FireServer("createPortal1", mouse.Hit.p)
-    elseif not workspace:FindFirstChild("Portal2") then
-        remoteEvent:FireServer("createPortal2", mouse.Hit.p)
+-- Drag functionality
+local dragging = false
+local dragInput, dragStart, startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
     end
 end)
 
--- Connect reset button
-resetButton.MouseButton1Click:Connect(function()
-    remoteEvent:FireServer("resetPortals")
+frame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        if dragging then
+            update(input)
+        end
+    end
 end)
 
--- Teleport player when touching portals
-workspace.ChildAdded:Connect(function(child)
-    if child.Name == "Portal1" or child.Name == "Portal2" then
-        child.Touched:Connect(function(hit)
-            local character = hit.Parent
-            if character and character:FindFirstChild("Humanoid") then
-                teleportFunction:InvokeServer(child)
-            end
-        end)
+-- Input field for player name
+local playerNameBox = Instance.new("TextBox")
+playerNameBox.Size = UDim2.new(0, 250, 0, 50)
+playerNameBox.Position = UDim2.new(0, 25, 0, 25)
+playerNameBox.PlaceholderText = "Enter Player Name"
+playerNameBox.Parent = frame
+
+-- Drop Cash button
+local dropButton = Instance.new("TextButton")
+dropButton.Size = UDim2.new(0, 250, 0, 50)
+dropButton.Position = UDim2.new(0, 25, 0, 100)
+dropButton.Text = "Drop Cash"
+dropButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+dropButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+dropButton.Parent = frame
+
+-- Find the closest player name
+local function getClosestPlayerName(partialName)
+    local closestPlayer = nil
+    local shortestDistance = math.huge
+
+    for _, otherPlayer in ipairs(game.Players:GetPlayers()) do
+        local playerName = otherPlayer.Name
+        local distance = #playerName - #partialName
+        if distance < shortestDistance then
+            closestPlayer = otherPlayer
+            shortestDistance = distance
+        end
+    end
+
+    return closestPlayer
+end
+
+-- Button click event
+dropButton.MouseButton1Click:Connect(function()
+    local playerName = playerNameBox.Text
+    if playerName == "" then return end
+
+    local targetPlayer = getClosestPlayerName(playerName)
+
+    if targetPlayer then
+        local args = {
+            [1] = "DropMoney",
+            [2] = "10000"
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
+    else
+        warn("No player found with the name: " .. playerName)
     end
 end)
