@@ -57,8 +57,6 @@ portalGun.Activated:Connect(function()
         portal1 = createPortal(mouse.Hit.p, "Bright blue")
     elseif not portal2 then
         portal2 = createPortal(mouse.Hit.p, "Bright orange")
-    else
-        teleportPlayer(portal1)
     end
 end)
 
@@ -89,4 +87,16 @@ game.Players.PlayerAdded:Connect(function(plr)
             end)
         end
     end)
+end)
+
+-- Ensure portals are visible to all players
+game.Players.PlayerAdded:Connect(function(plr)
+    if portal1 then
+        local newPortal1 = portal1:Clone()
+        newPortal1.Parent = workspace
+    end
+    if portal2 then
+        local newPortal2 = portal2:Clone()
+        newPortal2.Parent = workspace
+    end
 end)
