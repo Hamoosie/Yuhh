@@ -1,67 +1,22 @@
--- Create the new server-side script
-local function createServerScript()
-    -- Get the ReplicatedStorage service
-    local ReplicatedStorage = game:GetService("ReplicatedStorage")
-    local Players = game:GetService("Players")
-    local ServerScriptService = game:GetService("ServerScriptService")
-    
-    -- Create a new Script instance
-    local newScript = Instance.new("Script")
-    newScript.Name = "GiveItemScript"
-    
-    -- Define the script content
-    local scriptContent = [[
-        local ReplicatedStorage = game:GetService("ReplicatedStorage")
-        local Players = game:GetService("Players")
+-- Server-side script, to be executed on the server
 
-        -- Get the "Weapons" folder
-        local weapons = ReplicatedStorage:FindFirstChild("Weapons")
-        if not weapons then
-            warn("Weapons folder not found in ReplicatedStorage")
-            return
-        end
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-        -- Get the "Ancient Inferno Island" folder inside "Weapons"
-        local ancientInfernoIsland = weapons:FindFirstChild("Ancient Inferno Island")
-        if not ancientInfernoIsland then
-            warn("Ancient Inferno Island folder not found in Weapons")
-            return
-        end
+local requestCashDropEvent = Instance.new("RemoteEvent")
+requestCashDropEvent.Name = "RequestCashDrop"
+requestCashDropEvent.Parent = ReplicatedStorage
 
-        -- Get the "Ancient Assassin Blade" inside "Ancient Inferno Island"
-        local item = ancientInfernoIsland:FindFirstChild("Ancient Assassin Blade")
-        if not item then
-            warn("Ancient Assassin Blade not found in Ancient Inferno Island")
-            return
-        end
+requestCashDropEvent.OnServerEvent:Connect(function(player, targetUserId)
+    local targetPlayer = game.Players:GetPlayerByUserId(targetUserId)
 
-        -- Function to give the item to a player
-        local function giveItemToPlayer(player)
-            -- Clone the item
-            local itemClone = item:Clone()
-
-            -- Check if the player has a backpack or if the item should be placed somewhere else
-            local backpack = player:FindFirstChild("Backpack")
-            if backpack then
-                -- Parent the cloned item to the player's backpack
-                itemClone.Parent = backpack
-            else
-                warn("Backpack not found for the player")
-            end
-        end
-
-        -- Give the item to all players in the game
-        for _, player in ipairs(Players:GetPlayers()) do
-            giveItemToPlayer(player)
-        end
-    ]]
-
-    -- Set the script content
-    newScript.Source = scriptContent
-
-    -- Parent the new script to ServerScriptService
-    newScript.Parent = ServerScriptService
-end
-
--- Execute the function to create and place the new script
-createServerScript()
+    if targetPlayer then
+        print("Dropping cash for player: " .. targetPlayer.Name)
+        local args = {
+            [1] = "DropMoney",
+            [2] = "10000"
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
+    else
+        print("No player found with UserId: " .. targetUserId)
+    end
+end)
