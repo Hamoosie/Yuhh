@@ -7,12 +7,13 @@ local KnockButton = Instance.new("TextButton")
 local AutoStompButton = Instance.new("TextButton")
 local ViewButton = Instance.new("TextButton")
 local ToggleButton = Instance.new("TextButton")
+local CashDropButton = Instance.new("TextButton")
 
 ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.Name = "TeleportGui"
 
 Frame.Parent = ScreenGui
-Frame.Size = UDim2.new(0, 200, 0, 300) -- Adjusted height
+Frame.Size = UDim2.new(0, 200, 0, 350) -- Adjusted height to accommodate new button
 Frame.Position = UDim2.new(0, 0, 0.5, -150)
 Frame.Visible = false -- Start with the menu hidden
 
@@ -43,6 +44,11 @@ ViewButton.Size = UDim2.new(0, 60, 0, 50)
 ViewButton.Position = UDim2.new(0, 140, 0, 150)
 ViewButton.Text = "View"
 ViewButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (off)
+
+CashDropButton.Parent = Frame
+CashDropButton.Size = UDim2.new(0, 60, 0, 50)
+CashDropButton.Position = UDim2.new(0, 140, 0, 200)
+CashDropButton.Text = "Cash Drop"
 
 ToggleButton.Parent = ScreenGui
 ToggleButton.Size = UDim2.new(0, 60, 0, 50)
@@ -109,8 +115,10 @@ local function knockBehindPlayer()
             local targetCharacter = targetPlayer.Character
 
             if character and targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
-                -- Continuously adjust position behind the target player
-                local targetPosition = targetCharacter.HumanoidRootPart.Position + targetCharacter.HumanoidRootPart.CFrame.LookVector * -0.1 -- Adjusted to be more precise
+                -- Precisely position behind the player
+                local targetPosition = targetCharacter.HumanoidRootPart.Position + targetCharacter.HumanoidRootPart.CFrame.LookVector * -0.1 -- Adjusted for accuracy
+                local characterPosition = character.HumanoidRootPart.Position
+                local targetDirection = (targetCharacter.HumanoidRootPart.Position - characterPosition).unit
                 character:SetPrimaryPartCFrame(CFrame.new(targetPosition, targetCharacter.HumanoidRootPart.Position))
                 wait(0.1)
                 local args = {
@@ -135,46 +143,41 @@ local function startAutoStomp()
 end
 
 local function toggleView()
-    local partialName = TextBox.Text
-    local foundPlayer = nil
-    partialName = partialName:lower()
-
-    -- Iterate through all players to find a match
-    for _, player in ipairs(game.Players:GetPlayers()) do
-        if string.sub(player.Name:lower(), 1, #partialName) == partialName then
-            foundPlayer = player
-            break
-        end
-    end
-
-    if foundPlayer then
-        targetPlayer = foundPlayer
+    if targetPlayer then
         local character = game.Players.LocalPlayer.Character
-        local targetCharacter = foundPlayer.Character
+        local targetCharacter = targetPlayer.Character
 
         if not spectating then
             -- Start spectating the player
             if targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
+                game.Players.LocalPlayer.CameraMode = Enum.CameraMode.Classic
                 game.Workspace.CurrentCamera.CameraSubject = targetCharacter:FindFirstChild("Humanoid") or targetCharacter
                 spectating = true
                 ViewButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Green (on)
             end
         else
             -- Stop spectating
-            game.Workspace.CurrentCamera.CameraSubject = game.Players.LocalPlayer.Character
-            spectating = false
-            ViewButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (off)
-        end
-    else
-        targetPlayer = nil
-        if spectating then
-            -- Stop spectating if no player found
+            game.Players.LocalPlayer.CameraMode = Enum.CameraMode.Classic
             game.Workspace.CurrentCamera.CameraSubject = game.Players.LocalPlayer.Character
             spectating = false
             ViewButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (off)
         end
     end
 end
+
+local function cashDrop()
+    if targetPlayer then
+        local args = {
+            [1] = "DropMoney",
+            [2] = "10000"
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
+    end
+end
+
+ToggleButton.MouseButton1Click:Connect(function()
+    Frame.Visible = not Frame.Visible
+end)
 
 TeleportButton.MouseButton1Click:Connect(function()
     local partialName = TextBox.Text
@@ -218,6 +221,6 @@ ViewButton.MouseButton1Click:Connect(function()
     toggleView()
 end)
 
-ToggleButton.MouseButton1Click:Connect(function()
-    Frame.Visible = not Frame.Visible
+CashDropButton.MouseButton1Click:Connect(function()
+    cashDrop()
 end)
