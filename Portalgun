@@ -1,11 +1,64 @@
--- Client-side script to be executed in a LocalScript
+-- Create a RemoteEvent if it does not exist (for communication between client and server)
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local requestCashDropEvent = ReplicatedStorage:FindFirstChild("RequestCashDrop")
 
--- Setup for GUI and RemoteEvent
-local function setup()
+if not requestCashDropEvent then
+    requestCashDropEvent = Instance.new("RemoteEvent")
+    requestCashDropEvent.Name = "RequestCashDrop"
+    requestCashDropEvent.Parent = ReplicatedStorage
+end
+
+-- Function to find a player by partial name
+local function findPlayerByPartialName(partialName)
+    local matchingPlayers = {}
+    
+    for _, player in ipairs(game.Players:GetPlayers()) do
+        if string.lower(player.Name):sub(1, #partialName):lower() == partialName:lower() then
+            table.insert(matchingPlayers, player)
+        end
+    end
+    
+    if #matchingPlayers > 0 then
+        return matchingPlayers[1] -- Return the first match
+    else
+        return nil
+    end
+end
+
+-- Function to handle cash drop request
+local function handleCashDrop(targetPlayer)
+    if targetPlayer then
+        print("Player found: " .. targetPlayer.Name)
+        local args = {
+            [1] = "DropMoney",
+            [2] = "10000"
+        }
+        -- Assuming there's a "MainEvent" for cash drop in ReplicatedStorage
+        local mainEvent = ReplicatedStorage:FindFirstChild("MainEvent")
+        if mainEvent then
+            mainEvent:FireServer(unpack(args))
+        else
+            print("MainEvent not found in ReplicatedStorage.")
+        end
+    else
+        print("No player found for cash drop.")
+    end
+end
+
+-- Handle RemoteEvent on the server (in a local script context)
+requestCashDropEvent.OnServerEvent:Connect(function(player, targetUserId)
+    local targetPlayer = game.Players:GetPlayerByUserId(targetUserId)
+    handleCashDrop(targetPlayer)
+end)
+
+-- Client-side GUI setup
+local function setupGUI()
     local player = game.Players.LocalPlayer
+    local playerGui = player:WaitForChild("PlayerGui")
+    
     local screenGui = Instance.new("ScreenGui")
-    screenGui.Parent = player:WaitForChild("PlayerGui")
-
+    screenGui.Parent = playerGui
+    
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(0, 300, 0, 200)
     frame.Position = UDim2.new(0, 50, 0, 50)
@@ -16,12 +69,12 @@ local function setup()
     -- Drag functionality
     local dragging = false
     local dragInput, dragStart, startPos
-
+    
     local function update(input)
         local delta = input.Position - dragStart
         frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
-
+    
     frame.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
@@ -34,7 +87,7 @@ local function setup()
             end)
         end
     end)
-
+    
     frame.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement then
             if dragging then
@@ -42,14 +95,14 @@ local function setup()
             end
         end
     end)
-
+    
     -- Input field for player name
     local playerNameBox = Instance.new("TextBox")
     playerNameBox.Size = UDim2.new(0, 250, 0, 50)
     playerNameBox.Position = UDim2.new(0, 25, 0, 25)
     playerNameBox.PlaceholderText = "Enter Player Name"
     playerNameBox.Parent = frame
-
+    
     -- Drop Cash button
     local dropButton = Instance.new("TextButton")
     dropButton.Size = UDim2.new(0, 250, 0, 50)
@@ -58,46 +111,23 @@ local function setup()
     dropButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
     dropButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     dropButton.Parent = frame
-
-    -- Function to find the player by partial name
-    local function findPlayerByPartialName(partialName)
-        local matchingPlayers = {}
-        
-        for _, otherPlayer in ipairs(game.Players:GetPlayers()) do
-            if string.lower(otherPlayer.Name):sub(1, #partialName):lower() == partialName:lower() then
-                table.insert(matchingPlayers, otherPlayer)
-            end
-        end
-        
-        if #matchingPlayers > 0 then
-            return matchingPlayers[1]  -- Return the first match
-        else
-            return nil
-        end
-    end
-
+    
     -- Button click event
     dropButton.MouseButton1Click:Connect(function()
         local playerName = playerNameBox.Text
         if playerName == "" then return end
-
+        
         local targetPlayer = findPlayerByPartialName(playerName)
-
+        
         if targetPlayer then
             print("Player found: " .. targetPlayer.Name)
-
-            -- Send request to the server to execute cash drop for the target player
-            local requestCashDropEvent = game.ReplicatedStorage:FindFirstChild("RequestCashDrop")
-            if requestCashDropEvent then
-                requestCashDropEvent:FireServer(targetPlayer.UserId)
-            else
-                print("RemoteEvent 'RequestCashDrop' not found.")
-            end
+            -- Send request to server to execute cash drop for the target player
+            requestCashDropEvent:FireServer(targetPlayer.UserId)
         else
             print("No player found with the name: " .. playerName)
         end
     end)
 end
 
--- Execute the setup
-setup()
+-- Run the GUI setup
+setupGUI()
