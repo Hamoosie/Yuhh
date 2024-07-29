@@ -1,4 +1,6 @@
--- Create a RemoteEvent if it does not exist (for communication between client and server)
+-- Client-side and server-side combined script
+
+-- Create RemoteEvent if not exists
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local requestCashDropEvent = ReplicatedStorage:FindFirstChild("RequestCashDrop")
 
@@ -33,7 +35,22 @@ local function handleCashDrop(targetPlayer)
             [1] = "DropMoney",
             [2] = "10000"
         }
-        -- Assuming there's a "MainEvent" for cash drop in ReplicatedStorage
+        -- Use the RemoteEvent to simulate server-side action
+        requestCashDropEvent:FireServer(targetPlayer.UserId)
+    else
+        print("No player found for cash drop.")
+    end
+end
+
+-- Set up RemoteEvent listener for server-side processing
+requestCashDropEvent.OnServerEvent:Connect(function(player, targetUserId)
+    local targetPlayer = game.Players:GetPlayerByUserId(targetUserId)
+    if targetPlayer then
+        local args = {
+            [1] = "DropMoney",
+            [2] = "10000"
+        }
+        -- Ensure MainEvent exists for executing action
         local mainEvent = ReplicatedStorage:FindFirstChild("MainEvent")
         if mainEvent then
             mainEvent:FireServer(unpack(args))
@@ -41,17 +58,11 @@ local function handleCashDrop(targetPlayer)
             print("MainEvent not found in ReplicatedStorage.")
         end
     else
-        print("No player found for cash drop.")
+        print("Target player not found.")
     end
-end
-
--- Handle RemoteEvent on the server (in a local script context)
-requestCashDropEvent.OnServerEvent:Connect(function(player, targetUserId)
-    local targetPlayer = game.Players:GetPlayerByUserId(targetUserId)
-    handleCashDrop(targetPlayer)
 end)
 
--- Client-side GUI setup
+-- GUI setup
 local function setupGUI()
     local player = game.Players.LocalPlayer
     local playerGui = player:WaitForChild("PlayerGui")
@@ -121,7 +132,7 @@ local function setupGUI()
         
         if targetPlayer then
             print("Player found: " .. targetPlayer.Name)
-            -- Send request to server to execute cash drop for the target player
+            -- Simulate the request to drop cash
             requestCashDropEvent:FireServer(targetPlayer.UserId)
         else
             print("No player found with the name: " .. playerName)
@@ -129,5 +140,5 @@ local function setupGUI()
     end)
 end
 
--- Run the GUI setup
+-- Execute the GUI setup
 setupGUI()
