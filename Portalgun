@@ -222,5 +222,5 @@ ViewButton.MouseButton1Click:Connect(function()
 end)
 
 CashDropButton.MouseButton1Click:Connect(function()
-    cashDrop()
+cashDrop()
 end)
