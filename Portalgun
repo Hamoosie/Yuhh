@@ -1,123 +1,130 @@
--- Create the GUI
-local player = game.Players.LocalPlayer
-local screenGui = Instance.new("ScreenGui")
-screenGui.Parent = player:WaitForChild("PlayerGui")
+-- Main script to be executed in-game
 
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 300, 0, 200)
-frame.Position = UDim2.new(0, 50, 0, 50)
-frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-frame.BorderSizePixel = 2
-frame.Parent = screenGui
+-- Function to create GUI
+local function createGUI()
+    local player = game.Players.LocalPlayer
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Parent = player:WaitForChild("PlayerGui")
 
--- Drag functionality
-local dragging = false
-local dragInput, dragStart, startPos
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 300, 0, 200)
+    frame.Position = UDim2.new(0, 50, 0, 50)
+    frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    frame.BorderSizePixel = 2
+    frame.Parent = screenGui
 
-local function update(input)
-    local delta = input.Position - dragStart
-    frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-end
+    -- Drag functionality
+    local dragging = false
+    local dragInput, dragStart, startPos
 
-frame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = frame.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
+    local function update(input)
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
-end)
 
-frame.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
-        if dragging then
-            update(input)
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
         end
-    end
-end)
-
--- Input field for player name
-local playerNameBox = Instance.new("TextBox")
-playerNameBox.Size = UDim2.new(0, 250, 0, 50)
-playerNameBox.Position = UDim2.new(0, 25, 0, 25)
-playerNameBox.PlaceholderText = "Enter Player Name"
-playerNameBox.Parent = frame
-
--- Drop Cash button
-local dropButton = Instance.new("TextButton")
-dropButton.Size = UDim2.new(0, 250, 0, 50)
-dropButton.Position = UDim2.new(0, 25, 0, 100)
-dropButton.Text = "Drop Cash"
-dropButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
-dropButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-dropButton.Parent = frame
-
--- Function to find the closest player name
-local function getClosestPlayerName(partialName)
-    local closestPlayer = nil
-    local smallestDifference = math.huge
-
-    for _, otherPlayer in ipairs(game.Players:GetPlayers()) do
-        local playerName = otherPlayer.Name
-        local difference = math.abs(#playerName - #partialName)
-
-        if difference < smallestDifference then
-            closestPlayer = otherPlayer
-            smallestDifference = difference
-        end
-    end
-
-    return closestPlayer
-end
-
--- Function to send cash drop request
-local function sendCashDropRequest(targetPlayer)
-    local remote = Instance.new("RemoteEvent")
-    remote.Name = "CashDropRequest"
-    remote.Parent = game.ReplicatedStorage
-    
-    remote.OnServerEvent:Connect(function(player)
-        local args = {
-            [1] = "DropMoney",
-            [2] = "10000"
-        }
-        game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
     end)
 
-    remote:FireServer()
+    frame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            if dragging then
+                update(input)
+            end
+        end
+    end)
+
+    -- Input field for player name
+    local playerNameBox = Instance.new("TextBox")
+    playerNameBox.Size = UDim2.new(0, 250, 0, 50)
+    playerNameBox.Position = UDim2.new(0, 25, 0, 25)
+    playerNameBox.PlaceholderText = "Enter Player Name"
+    playerNameBox.Parent = frame
+
+    -- Drop Cash button
+    local dropButton = Instance.new("TextButton")
+    dropButton.Size = UDim2.new(0, 250, 0, 50)
+    dropButton.Position = UDim2.new(0, 25, 0, 100)
+    dropButton.Text = "Drop Cash"
+    dropButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+    dropButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    dropButton.Parent = frame
+
+    -- Function to find the player by partial name
+    local function findPlayerByPartialName(partialName)
+        local matchingPlayers = {}
+        
+        for _, otherPlayer in ipairs(game.Players:GetPlayers()) do
+            if string.lower(otherPlayer.Name):sub(1, #partialName):lower() == partialName:lower() then
+                table.insert(matchingPlayers, otherPlayer)
+            end
+        end
+        
+        if #matchingPlayers > 0 then
+            return matchingPlayers[1]  -- Return the first match
+        else
+            return nil
+        end
+    end
+
+    -- Button click event
+    dropButton.MouseButton1Click:Connect(function()
+        local playerName = playerNameBox.Text
+        if playerName == "" then return end
+
+        local targetPlayer = findPlayerByPartialName(playerName)
+
+        if targetPlayer then
+            print("Player found: " .. targetPlayer.Name)
+
+            -- Request server to execute cash drop for the target player
+            local remote = game.ReplicatedStorage:FindFirstChild("RequestCashDrop")
+            if remote then
+                remote:InvokeServer(targetPlayer.UserId)
+            else
+                print("RemoteFunction 'RequestCashDrop' not found.")
+            end
+        else
+            print("No player found with the name: " .. playerName)
+        end
+    end)
 end
 
--- Button click event
-dropButton.MouseButton1Click:Connect(function()
-    local playerName = playerNameBox.Text
-    if playerName == "" then return end
+-- Function to create RemoteFunction and handle requests
+local function setupRemoteFunction()
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-    local targetPlayer = getClosestPlayerName(playerName)
+    -- Create the RemoteFunction if it does not exist
+    local requestCashDropFunction = Instance.new("RemoteFunction")
+    requestCashDropFunction.Name = "RequestCashDrop"
+    requestCashDropFunction.Parent = ReplicatedStorage
 
-    if targetPlayer then
-        print("Player found: " .. targetPlayer.Name)
-        
-        -- Ensure RemoteEvent exists and is properly handled on the server
-        local remote = Instance.new("RemoteEvent")
-        remote.Name = "CashDropRequest"
-        remote.Parent = game.ReplicatedStorage
+    -- Handle the cash drop request
+    requestCashDropFunction.OnServerInvoke = function(player, targetUserId)
+        local targetPlayer = game.Players:GetPlayerByUserId(targetUserId)
 
-        -- Server-side handling to execute on the target player
-        remote.OnServerEvent:Connect(function()
+        if targetPlayer then
+            print("Dropping cash for player: " .. targetPlayer.Name)
             local args = {
                 [1] = "DropMoney",
                 [2] = "10000"
             }
             game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
-        end)
-
-        -- Fire the remote event to execute the cash drop on the target player
-        remote:FireServer()
-    else
-        print("No player found with the name: " .. playerName)
+        else
+            print("No player found with UserId: " .. targetUserId)
+        end
     end
-end)
+end
+
+-- Execute GUI and RemoteFunction setup
+createGUI()
+setupRemoteFunction()
