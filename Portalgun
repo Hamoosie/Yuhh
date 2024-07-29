@@ -1,7 +1,19 @@
--- Main script to be executed in-game
+-- This script should be executed in a local script for the GUI part
+-- and also create the RemoteEvent part. It assumes you can execute scripts directly.
 
--- Function to create GUI
-local function createGUI()
+-- Setup for GUI and RemoteEvent creation
+local function setup()
+    -- Create RemoteEvent
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local requestCashDropEvent = ReplicatedStorage:FindFirstChild("RequestCashDrop")
+
+    if not requestCashDropEvent then
+        requestCashDropEvent = Instance.new("RemoteEvent")
+        requestCashDropEvent.Name = "RequestCashDrop"
+        requestCashDropEvent.Parent = ReplicatedStorage
+    end
+
+    -- GUI Creation
     local player = game.Players.LocalPlayer
     local screenGui = Instance.new("ScreenGui")
     screenGui.Parent = player:WaitForChild("PlayerGui")
@@ -86,30 +98,24 @@ local function createGUI()
         if targetPlayer then
             print("Player found: " .. targetPlayer.Name)
 
-            -- Request server to execute cash drop for the target player
-            local remote = game.ReplicatedStorage:FindFirstChild("RequestCashDrop")
-            if remote then
-                remote:InvokeServer(targetPlayer.UserId)
-            else
-                print("RemoteFunction 'RequestCashDrop' not found.")
-            end
+            -- Send request to the server to execute cash drop for the target player
+            requestCashDropEvent:FireServer(targetPlayer.UserId)
         else
             print("No player found with the name: " .. playerName)
         end
     end)
 end
 
--- Function to create RemoteFunction and handle requests
-local function setupRemoteFunction()
-    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+-- Execute the setup
+setup()
 
-    -- Create the RemoteFunction if it does not exist
-    local requestCashDropFunction = Instance.new("RemoteFunction")
-    requestCashDropFunction.Name = "RequestCashDrop"
-    requestCashDropFunction.Parent = ReplicatedStorage
+-- Server-Side Script - to be executed on the server
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-    -- Handle the cash drop request
-    requestCashDropFunction.OnServerInvoke = function(player, targetUserId)
+local requestCashDropEvent = ReplicatedStorage:FindFirstChild("RequestCashDrop")
+
+if requestCashDropEvent then
+    requestCashDropEvent.OnServerEvent:Connect(function(player, targetUserId)
         local targetPlayer = game.Players:GetPlayerByUserId(targetUserId)
 
         if targetPlayer then
@@ -122,9 +128,5 @@ local function setupRemoteFunction()
         else
             print("No player found with UserId: " .. targetUserId)
         end
-    end
+    end)
 end
-
--- Execute GUI and RemoteFunction setup
-createGUI()
-setupRemoteFunction()
