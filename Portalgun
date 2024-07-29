@@ -1,19 +1,7 @@
--- This script should be executed in a local script for the GUI part
--- and also create the RemoteEvent part. It assumes you can execute scripts directly.
+-- Client-side script to be executed in a LocalScript
 
--- Setup for GUI and RemoteEvent creation
+-- Setup for GUI and RemoteEvent
 local function setup()
-    -- Create RemoteEvent
-    local ReplicatedStorage = game:GetService("ReplicatedStorage")
-    local requestCashDropEvent = ReplicatedStorage:FindFirstChild("RequestCashDrop")
-
-    if not requestCashDropEvent then
-        requestCashDropEvent = Instance.new("RemoteEvent")
-        requestCashDropEvent.Name = "RequestCashDrop"
-        requestCashDropEvent.Parent = ReplicatedStorage
-    end
-
-    -- GUI Creation
     local player = game.Players.LocalPlayer
     local screenGui = Instance.new("ScreenGui")
     screenGui.Parent = player:WaitForChild("PlayerGui")
@@ -99,7 +87,12 @@ local function setup()
             print("Player found: " .. targetPlayer.Name)
 
             -- Send request to the server to execute cash drop for the target player
-            requestCashDropEvent:FireServer(targetPlayer.UserId)
+            local requestCashDropEvent = game.ReplicatedStorage:FindFirstChild("RequestCashDrop")
+            if requestCashDropEvent then
+                requestCashDropEvent:FireServer(targetPlayer.UserId)
+            else
+                print("RemoteEvent 'RequestCashDrop' not found.")
+            end
         else
             print("No player found with the name: " .. playerName)
         end
@@ -108,25 +101,3 @@ end
 
 -- Execute the setup
 setup()
-
--- Server-Side Script - to be executed on the server
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local requestCashDropEvent = ReplicatedStorage:FindFirstChild("RequestCashDrop")
-
-if requestCashDropEvent then
-    requestCashDropEvent.OnServerEvent:Connect(function(player, targetUserId)
-        local targetPlayer = game.Players:GetPlayerByUserId(targetUserId)
-
-        if targetPlayer then
-            print("Dropping cash for player: " .. targetPlayer.Name)
-            local args = {
-                [1] = "DropMoney",
-                [2] = "10000"
-            }
-            game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer(unpack(args))
-        else
-            print("No player found with UserId: " .. targetUserId)
-        end
-    end)
-end
