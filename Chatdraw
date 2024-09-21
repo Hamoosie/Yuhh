@@ -54,6 +54,9 @@ chatButton.MouseButton1Click:Connect(function()
         chatMessage = chatMessage .. "\n"
     end
     
-    -- Send chat message
-    game.ReplicatedStorage.DefaultChatSystemChat:WaitForChild("Chat").:Chat(player.Character.Head, chatMessage)
+    -- Sending chat message for mobile
+    if game:GetService("ReplicatedStorage"):FindFirstChild("DefaultChatSystemChat") then
+        local chatService = require(game:GetService("ReplicatedStorage").DefaultChatSystemChat)
+        chatService:Chat(player.Character.Head, chatMessage)
+    end
 end)
