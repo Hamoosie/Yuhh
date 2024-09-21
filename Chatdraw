@@ -12,6 +12,7 @@ drawingArea.Size = UDim2.new(0, 200, 1, 0)
 drawingArea.Position = UDim2.new(1, -200, 0, 0)
 drawingArea.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 drawingArea.BackgroundTransparency = 0.5
+drawingArea.Visible = true -- Ensure the drawing area is visible
 
 -- Create Draggable Squares
 for i = 1, 25 do
@@ -20,7 +21,7 @@ for i = 1, 25 do
     square.Position = UDim2.new((i-1) % 5 * 0.2, 0, math.floor((i-1) / 5) * 0.2, 0)
     square.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     square.BorderColor3 = Color3.fromRGB(0, 0, 0)
-    
+
     square.MouseButton1Click:Connect(function()
         if not selectedSquares[square] then
             selectedSquares[square] = true
@@ -53,10 +54,16 @@ chatButton.MouseButton1Click:Connect(function()
         end
         chatMessage = chatMessage .. "\n"
     end
-    
-    -- Sending chat message for mobile
-    if game:GetService("ReplicatedStorage"):FindFirstChild("DefaultChatSystemChat") then
-        local chatService = require(game:GetService("ReplicatedStorage").DefaultChatSystemChat)
-        chatService:Chat(player.Character.Head, chatMessage)
+
+    -- Send chat message
+    local success, errorMessage = pcall(function()
+        game:GetService("ReplicatedStorage").DefaultChatSystemChat:Chat(player.Character.Head, chatMessage)
+    end)
+
+    if not success then
+        print("Error sending chat: " .. errorMessage)
     end
 end)
+
+-- Ensure the ScreenGui is visible
+screenGui.Enabled = true
