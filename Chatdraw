@@ -25,7 +25,7 @@ for i = 1, rows do
     for j = 1, cols do
         local square = Instance.new("Frame", drawingArea)
         square.Size = UDim2.new(0, squareSize, 0, squareSize)
-        square.Position = UDim2.new((j - 1) / cols, 0, (i - 1) / rows, 0)
+        square.Position = UDim2.new((j - 1) * squareSize / drawingArea.Size.X.Offset, 0, (i - 1) * squareSize / drawingArea.Size.Y.Offset, 0)
         square.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- White square
         square.BorderColor3 = Color3.fromRGB(0, 0, 0)
 
