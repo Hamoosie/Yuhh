@@ -68,9 +68,9 @@ chatButton.InputBegan:Connect(function(input)
             chatMessage = chatMessage .. "\n" -- New line after each row
         end
 
-        -- Send chat message
+        -- Send chat message using the Chat service
         local success, errorMessage = pcall(function()
-            game:GetService("ReplicatedStorage").DefaultChatSystemChat:Chat(player.Character.Head, chatMessage)
+            game:GetService("Chat"):Chat(player.Character.Head, chatMessage)
         end)
 
         if not success then
