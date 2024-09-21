@@ -8,8 +8,8 @@ local squares = {}
 local selectedSquares = {}
 
 -- Setup Drawing Area
-drawingArea.Size = UDim2.new(0, 300, 0, 200) -- Rectangular shape
-drawingArea.Position = UDim2.new(0.5, -150, 0.5, -100) -- Centered
+drawingArea.Size = UDim2.new(0, 300, 0, 300) -- Increased height for more rows
+drawingArea.Position = UDim2.new(0.5, -150, 0.5, -150) -- Centered
 drawingArea.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 drawingArea.BackgroundTransparency = 0.5
 drawingArea.Visible = true
@@ -19,7 +19,7 @@ drawingArea.Draggable = true -- Make it draggable
 -- Create Selectable Squares
 local squareSize = 30
 local cols = 10
-local rows = 6
+local rows = 10 -- Increased rows to 10
 
 for i = 1, rows do
     for j = 1, cols do
@@ -65,7 +65,7 @@ chatButton.InputBegan:Connect(function(input)
                     chatMessage = chatMessage .. "⬜️" -- White square for unselected
                 end
             end
-            chatMessage = chatMessage .. "\n"
+            chatMessage = chatMessage .. "\n" -- New line after each row
         end
 
         -- Send chat message
