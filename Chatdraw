@@ -8,44 +8,52 @@ local squares = {}
 local selectedSquares = {}
 
 -- Setup Drawing Area
-drawingArea.Size = UDim2.new(0, 200, 1, 0)
-drawingArea.Position = UDim2.new(1, -200, 0, 0)
+drawingArea.Size = UDim2.new(0, 300, 0, 200) -- Rectangular shape
+drawingArea.Position = UDim2.new(0.5, -150, 0.5, -100) -- Centered
 drawingArea.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 drawingArea.BackgroundTransparency = 0.5
-drawingArea.Visible = true -- Ensure the drawing area is visible
+drawingArea.Visible = true
+drawingArea.Active = true
+drawingArea.Draggable = true -- Make it draggable
 
--- Create Draggable Squares
-for i = 1, 25 do
-    local square = Instance.new("Frame", drawingArea)
-    square.Size = UDim2.new(0, 30, 0, 30)
-    square.Position = UDim2.new((i-1) % 5 * 0.2, 0, math.floor((i-1) / 5) * 0.2, 0)
-    square.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    square.BorderColor3 = Color3.fromRGB(0, 0, 0)
+-- Create Selectable Squares
+local squareSize = 30
+local cols = 10
+local rows = 6
 
-    square.MouseButton1Click:Connect(function()
-        if not selectedSquares[square] then
-            selectedSquares[square] = true
-            square.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Selected color
-        else
-            selectedSquares[square] = nil
-            square.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- Deselect
-        end
-    end)
+for i = 1, rows do
+    for j = 1, cols do
+        local square = Instance.new("Frame", drawingArea)
+        square.Size = UDim2.new(0, squareSize, 0, squareSize)
+        square.Position = UDim2.new((j - 1) / cols, 0, (i - 1) / rows, 0)
+        square.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        square.BorderColor3 = Color3.fromRGB(0, 0, 0)
+        
+        square.MouseButton1Click:Connect(function()
+            if not selectedSquares[square] then
+                selectedSquares[square] = true
+                square.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Selected color
+            else
+                selectedSquares[square] = nil
+                square.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- Deselect
+            end
+        end)
 
-    table.insert(squares, square)
+        table.insert(squares, square)
+    end
 end
 
 -- Chat Button
 chatButton.Size = UDim2.new(0, 100, 0, 50)
-chatButton.Position = UDim2.new(0.5, -50, 0.9, 0)
+chatButton.Position = UDim2.new(0.5, -50, 1, -60) -- Positioned at the bottom
 chatButton.Text = "Chat"
 chatButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
 
 chatButton.MouseButton1Click:Connect(function()
     local chatMessage = ""
-    for i = 1, 5 do
-        for j = 1, 5 do
-            local index = (i-1) * 5 + j
+    for i = 1, rows do
+        for j = 1, cols do
+            local index = (i-1) * cols + j
             if selectedSquares[squares[index]] then
                 chatMessage = chatMessage .. "⚫️"
             else
