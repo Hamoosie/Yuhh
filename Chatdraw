@@ -26,16 +26,16 @@ for i = 1, rows do
         local square = Instance.new("Frame", drawingArea)
         square.Size = UDim2.new(0, squareSize, 0, squareSize)
         square.Position = UDim2.new((j - 1) / cols, 0, (i - 1) / rows, 0)
-        square.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        square.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- White square
         square.BorderColor3 = Color3.fromRGB(0, 0, 0)
-        
+
         square.MouseButton1Click:Connect(function()
             if not selectedSquares[square] then
                 selectedSquares[square] = true
-                square.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Selected color
+                square.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Selected color (black)
             else
                 selectedSquares[square] = nil
-                square.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- Deselect
+                square.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- Deselect (white)
             end
         end)
 
@@ -55,9 +55,9 @@ chatButton.MouseButton1Click:Connect(function()
         for j = 1, cols do
             local index = (i-1) * cols + j
             if selectedSquares[squares[index]] then
-                chatMessage = chatMessage .. "⚫️"
+                chatMessage = chatMessage .. "⬛️" -- Black square for selected
             else
-                chatMessage = chatMessage .. "⚪️"
+                chatMessage = chatMessage .. "⬜️" -- White square for unselected
             end
         end
         chatMessage = chatMessage .. "\n"
