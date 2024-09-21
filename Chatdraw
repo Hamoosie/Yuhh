@@ -29,13 +29,16 @@ for i = 1, rows do
         square.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- White square
         square.BorderColor3 = Color3.fromRGB(0, 0, 0)
 
-        square.MouseButton1Click:Connect(function()
-            if not selectedSquares[square] then
-                selectedSquares[square] = true
-                square.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Selected color (black)
-            else
-                selectedSquares[square] = nil
-                square.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- Deselect (white)
+        -- Touch input for mobile
+        square.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Touch then
+                if not selectedSquares[square] then
+                    selectedSquares[square] = true
+                    square.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Selected color (black)
+                else
+                    selectedSquares[square] = nil
+                    square.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- Deselect (white)
+                end
             end
         end)
 
@@ -49,27 +52,30 @@ chatButton.Position = UDim2.new(0.5, -50, 1, -60) -- Positioned at the bottom
 chatButton.Text = "Chat"
 chatButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
 
-chatButton.MouseButton1Click:Connect(function()
-    local chatMessage = ""
-    for i = 1, rows do
-        for j = 1, cols do
-            local index = (i-1) * cols + j
-            if selectedSquares[squares[index]] then
-                chatMessage = chatMessage .. "⬛️" -- Black square for selected
-            else
-                chatMessage = chatMessage .. "⬜️" -- White square for unselected
+-- Touch input for chat button
+chatButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch then
+        local chatMessage = ""
+        for i = 1, rows do
+            for j = 1, cols do
+                local index = (i - 1) * cols + j
+                if selectedSquares[squares[index]] then
+                    chatMessage = chatMessage .. "⬛️" -- Black square for selected
+                else
+                    chatMessage = chatMessage .. "⬜️" -- White square for unselected
+                end
             end
+            chatMessage = chatMessage .. "\n"
         end
-        chatMessage = chatMessage .. "\n"
-    end
 
-    -- Send chat message
-    local success, errorMessage = pcall(function()
-        game:GetService("ReplicatedStorage").DefaultChatSystemChat:Chat(player.Character.Head, chatMessage)
-    end)
+        -- Send chat message
+        local success, errorMessage = pcall(function()
+            game:GetService("ReplicatedStorage").DefaultChatSystemChat:Chat(player.Character.Head, chatMessage)
+        end)
 
-    if not success then
-        print("Error sending chat: " .. errorMessage)
+        if not success then
+            print("Error sending chat: " .. errorMessage)
+        end
     end
 end)
 
